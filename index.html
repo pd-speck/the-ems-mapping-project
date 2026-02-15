@@ -1,0 +1,3216 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>The EMS Mapping Project - Enhanced</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <style>
+    :root {
+      --sidebar-w: 350px;
+      --muted: #666;
+      --accent: #b1ab86;
+      --primary-bg: #b1ab8652;
+      --secondary-bg: #819067;
+      --tertiary-bg: #b1ab86;
+      --dark-bg: #0a400c;
+      --header-bg: #ffffff;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      font-size: 13px;
+    }
+
+    #sidebar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--primary-bg);
+      border-right: 2px solid var(--secondary-bg);
+      box-sizing: border-box;
+      overflow: hidden;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #map {
+      position: absolute;
+      left: var(--sidebar-w);
+      top: 0;
+      width: calc(100vw - var(--sidebar-w));
+      height: 100vh;
+    }
+
+    .sidebar-header {
+      padding: 12px;
+      background: var(--header-bg);
+      border-bottom: 3px solid var(--dark-bg);
+    }
+
+    .sidebar-header img {
+      width: 100%;
+      max-width: 280px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .tab-navigation {
+      display: flex;
+      background: var(--dark-bg);
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .tab-button {
+      flex: 1;
+      padding: 12px 8px;
+      background: transparent;
+      border: none;
+      border-right: 1px solid var(--secondary-bg);
+      color: var(--primary-bg);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 13px;
+    }
+
+    .tab-button:last-child {
+      border-right: none;
+    }
+
+    .tab-button:hover {
+      background: var(--secondary-bg);
+    }
+
+    .tab-button.active {
+      background: var(--primary-bg);
+      color: var(--dark-bg);
+    }
+
+    .tab-content {
+      display: none;
+      padding: 12px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    button,
+    input[type="file"] {
+      display: block;
+      width: 100%;
+      padding: 8px 10px;
+      margin-top: 8px;
+      box-sizing: border-box;
+      border-radius: 6px;
+      border: 1px solid var(--secondary-bg);
+      background: #ffffff;
+      cursor: pointer;
+      color: var(--dark-bg);
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .section-title {
+      margin-top: 14px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--dark-bg);
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    label.filter-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 13px;
+      color: var(--dark-bg);
+    }
+
+    .legend {
+      margin-top: 12px;
+      padding: 10px;
+      background: white;
+      border-radius: 6px;
+      border: 2px solid var(--accent);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .legend-bar {
+      height: 14px;
+      border-radius: 4px;
+      margin-top: 6px;
+    }
+
+    .counts {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--dark-bg);
+      white-space: pre-wrap;
+    }
+
+    .polygon-details {
+      margin-top: 12px;
+      border-top: 1px dashed #e6e9ee;
+      padding-top: 10px;
+    }
+
+    .details-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .details-scroll {
+      max-height: 220px;
+      overflow: auto;
+      margin-top: 8px;
+      border: 1px solid #f1f3f5;
+      border-radius: 6px;
+    }
+
+    .details-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+
+    .details-table th,
+    .details-table td {
+      border: 1px solid #e6e9ee;
+      padding: 6px 8px;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .summary-block {
+      margin-top: 10px;
+      font-size: 13px;
+    }
+
+    .day-section {
+      border: 1px solid #eef2f6;
+      border-radius: 6px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      cursor: pointer;
+      background: #fafbfc;
+    }
+
+    .day-title {
+      font-weight: 600;
+    }
+
+    .day-body {
+      padding: 8px 12px;
+      display: none;
+      background: #fff;
+    }
+
+    .shift-line {
+      margin-left: 8px;
+      font-size: 13px;
+      color: #111827;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .poly-label {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 2px solid var(--secondary-bg);
+      font-size: 13px;
+      color: var(--dark-bg);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .category-label {
+      background: var(--accent);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 2px solid var(--dark-bg);
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .top-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .poly-popup {
+      min-width: 200px;
+      max-width: 200px;
+      max-height: 200px;
+      overflow-y: scroll;
+      font-family: inherit;
+    }
+
+    .popup-table-wrapper {
+      overflow-x: auto;
+      max-width: 100%;
+    }
+
+    .popup-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--accent);
+      color: var(--dark-bg);
+    }
+
+    .popup-section {
+      margin-top: 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .popup-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: var(--primary-bg);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--dark-bg);
+    }
+
+    .popup-section-header:hover {
+      background: #cfc9b8;
+    }
+
+    .popup-section-body {
+      padding: 8px 10px;
+      font-size: 12px;
+      background: #fff;
+    }
+
+    .filter-section {
+      margin-top: 12px;
+      padding: 10px;
+      background: white;
+      border-radius: 6px;
+      border: 2px solid var(--accent);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .filter-section-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .loading-indicator {
+      color: var(--accent);
+      font-size: 12px;
+      font-style: italic;
+      margin-top: 8px;
+    }
+
+    .collapsible-box {
+      border: 2px solid var(--secondary-bg);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      background: #ffffff;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: var(--secondary-bg);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      user-select: none;
+      color: white;
+    }
+
+    .collapsible-header:hover {
+      background: var(--dark-bg);
+    }
+
+    .collapsible-content {
+      padding: 12px;
+      background: #ffffff;
+    }
+
+    .collapsible-content.collapsed {
+      display: none;
+    }
+
+    .collapse-icon {
+      color: white;
+      font-size: 12px;
+      transition: transform 0.2s;
+    }
+
+    .collapse-icon.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .subsection-title {
+      font-weight: 600;
+      font-size: 13px;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      color: var(--dark-bg);
+    }
+
+    .subsection-title:first-child {
+      margin-top: 0;
+    }
+
+    .map-overlay-text {
+      position: absolute;
+      bottom: 20px;
+      left: calc(var(--sidebar-w) + 20px);
+      right: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      font-size: 14px;
+      color: var(--dark-bg);
+      border: 2px solid var(--accent);
+      pointer-events: none;
+    }
+
+    .location-checkbox-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 8px;
+      border: 1px solid var(--secondary-bg);
+      border-radius: 6px;
+      padding: 8px;
+      background: #fafbfc;
+    }
+
+    .location-checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px;
+      font-size: 13px;
+    }
+
+    .category-mode-banner {
+      background: #f4ede1;
+      border: 2px solid var(--accent);
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: var(--dark-bg);
+      text-align: center;
+    }
+
+    .undo-hint {
+      font-size: 11px;
+      color: #6b7280;
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    .custom-filter-item {
+      background: #f4ede1;
+      border: 2px solid var(--accent);
+      border-radius: 6px;
+      padding: 8px;
+      margin-top: 8px;
+    }
+
+    .custom-filter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .custom-filter-name {
+      font-weight: 600;
+      color: var(--dark-bg);
+    }
+
+    .custom-filter-delete {
+      background: #fee2e2;
+      border: 1px solid #fca5a5;
+      color: #991b1b;
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .custom-filter-delete:hover {
+      background: #fecaca;
+    }
+
+    .custom-filter-conditions {
+      font-size: 12px;
+      color: var(--dark-bg);
+      margin-left: 8px;
+    }
+
+    .routing-mode-selector {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .routing-mode-btn {
+      flex: 1;
+      padding: 6px;
+      font-size: 12px;
+      border-radius: 4px;
+      border: 1px solid var(--secondary-bg);
+      background: #ffffff;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--dark-bg);
+      font-weight: 500;
+    }
+
+    .routing-mode-btn:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .routing-mode-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .primary-btn {
+      background: var(--accent) !important;
+      color: white !important;
+      border-color: var(--accent) !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+
+    .primary-btn:hover {
+      background: #8d6749 !important;
+      border-color: #8d6749 !important;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .secondary-btn {
+      background: #ffffff !important;
+      color: var(--dark-bg) !important;
+      border-color: var(--secondary-bg) !important;
+    }
+
+    .secondary-btn:hover {
+      background: var(--secondary-bg) !important;
+      color: white !important;
+      border-color: var(--secondary-bg) !important;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--secondary-bg);
+      margin: 12px 0;
+      opacity: 0.3;
+    }
+
+    /* Marker styling to show it's draggable */
+    .leaflet-interactive {
+      cursor: move !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="sidebar">
+    <div class="sidebar-header" style="background:#b1ab8610">
+      <img src="ems-mapping-project.png" alt="EMS Mapping Project" onerror="this.style.display='none'">
+    </div>
+
+    <!-- Category Mode Banner -->
+    <div id="categoryModeBanner" class="category-mode-banner" style="display:none; margin: 12px;">
+      ‼️ CATEGORY MODE ACTIVE
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button class="tab-button active" onclick="switchTab('settings')" style="color:#fefae0;">⚙️ Settings</button>
+      <button class="tab-button" onclick="switchTab('analysis')" style="color:#fefae0">📊 Analysis</button>
+    </div>
+
+    <!-- Settings Tab -->
+    <div id="settingsTab" class="tab-content active">
+      <div class="collapsible-box">
+        <div class="collapsible-header " onclick="toggleCollapsible('mapCenter')">
+          <span>📍 Map Center</span>
+          <span class="collapse-icon" id="mapCenter-icon">▼</span>
+        </div>
+        <div class="collapsible-content" id="mapCenter-content" style="background: #b1ab8652;">
+          <button id="setMapCenterBtn" class="primary-btn">Set Map Center</button>
+          <div class="controls-row">
+            <button id="setCurrentAsDefaultBtn" class="secondary-btn">Set Current as Default</button>
+            <button id="resetMapCenterBtn" class="secondary-btn">Go to Default</button>
+          </div>
+          <div id="mapCenterCoords" class="small-note" style="margin-top:6px;">Default: Lat 32.985, Lng -96.75, Zoom 16
+          </div>
+        </div>
+      </div>
+
+      <div class="collapsible-box">
+        <div class="collapsible-header" onclick="toggleCollapsible('station')">
+          <span>🚨 Station & Routing</span>
+          <span class="collapse-icon" id="station-icon">▼</span>
+        </div>
+        <div class="collapsible-content" id="station-content" style="background: #b1ab8652;">
+          <button id="setStationBtn" class="primary-btn">Set Station Location</button>
+          <div id="stationCoords" class="small-note" style="margin-top:6px;">Station not set (required for Distance/Time
+            Map)</div>
+
+          <div class="subsection-title" style="margin-top:12px;">Routing Mode 🚑💨</div>
+          <div class="routing-mode-selector">
+            <button class="routing-mode-btn active" data-mode="bike">Bike/Golf Cart/Walk</button>
+            <button class="routing-mode-btn" data-mode="driving">Drive</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="collapsible-box">
+        <div class="collapsible-header" onclick="toggleCollapsible('areas')">
+          <span>📐 Area Selection</span>
+          <span class="collapse-icon" id="areas-icon">▼</span>
+        </div>
+        <div class="collapsible-content" id="areas-content" style="background: #b1ab8652;">
+          <div class="controls-row">
+            <button id="startBtn" class="primary-btn">Start New Area</button>
+            <button id="finishBtn" disabled class="primary-btn">Finish</button>
+          </div>
+          <button id="exportPolygonsBtn" class="secondary-btn">Export Areas</button>
+          <div class="undo-hint">💡 Tip: Press Ctrl+Z to undo last point | Right-click a point to delete it</div>
+
+          <div class="subsection-title">Upload Areas</div>
+          <input id="importPolygonsFile" type="file" accept=".json" />
+          <div class="small-note" style="margin-top:6px; font-style: italic;">Upload a .JSON file here.</div>
+        </div>
+      </div>
+
+      <div class="collapsible-box">
+        <div class="collapsible-header" onclick="toggleCollapsible('categories')">
+          <span>📁 Categories</span>
+          <span class="collapse-icon" id="categories-icon">▼</span>
+        </div>
+        <div class="collapsible-content" id="categories-content" style="background: #b1ab8652;">
+          <label class="filter-item" style="margin-bottom:8px; font-weight: 600;">
+            <input type="checkbox" id="categoryModeToggle" /> Enable Category Mode
+          </label>
+          <div id="categoryModeControls" style="display:none;">
+            <button id="startCategoryBtn" class="primary-btn">Start New Category</button>
+            <button id="finishCategoryBtn" disabled class="primary-btn">Finish Category</button>
+            <div class="undo-hint">💡 Tip: Press Ctrl+Z to undo last point | Right-click a point to delete it</div>
+            <div id="locationSelectionContainer" style="display:none; margin-top:10px;">
+              <div style="font-weight:600; margin-bottom:6px;">Select Locations for Category:</div>
+              <input type="text" id="locationSearchBox" placeholder="Search locations..."
+                style="width:100%; padding:6px; margin-bottom:6px; border:1px solid var(--secondary-bg); border-radius:4px; font-size:13px;" />
+              <div id="locationCheckboxList" class="location-checkbox-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="collapsible-box">
+        <div class="collapsible-header" onclick="toggleCollapsible('incidents')">
+          <span>📊 Incident Data</span>
+          <span class="collapse-icon" id="incidents-icon">▼</span>
+        </div>
+        <div class="collapsible-content" id="incidents-content" style="background: #b1ab8652;">
+          <input id="csvFile" type="file" accept=".csv,text/csv" />
+          <div class="small-note" style="margin-top:6px; font-style: italic;">Upload a .CSV file. Include a column
+            titled 'location' for location matching. Include "timeElapsed" column for Distance/Time analysis.</div>
+          <button id="resetDataBtn" class="secondary-btn">Clear Incident Data Only</button>
+        </div>
+      </div>
+
+      <div class="collapsible-box" style="margin-top:10px">
+        <div class="collapsible-header" onclick="toggleCollapsible('customFilters')">
+          <span>⚡ Custom Filters</span>
+          <span class="collapse-icon" id="customFilters-icon">▼</span>
+        </div>
+        <div class="collapsible-content" id="customFilters-content" style="background: #b1ab8652;">
+          <button id="createCustomFilterBtn" class="primary-btn">+ Create Custom Filter</button>
+          <div id="customFiltersContainer"></div>
+        </div>
+      </div>
+
+      <div class="collapsible-box">
+        <div class="collapsible-header" onclick="toggleCollapsible('importExport')">
+          <span>📦 Import/Export</span>
+          <span class="collapse-icon" id="importExport-icon">▼</span>
+        </div>
+        <div class="collapsible-content" id="importExport-content" style="background: #b1ab8652;">
+          <button id="exportAllBtn" class="primary-btn">Export All Settings</button>
+          <input id="importAllFile" type="file" accept=".json" style="margin-top:8px;" />
+          <div class="small-note" style="margin-top:6px; font-style: italic;">Import a complete settings file to restore
+            all areas, categories, and filters.</div>
+        </div>
+      </div>
+
+      <button id="resetBtn" class="primary-btn" style="margin-top:12px;"><strong>⚠️ Reset All</strong></button>
+      <div id="polygonList" class="counts muted" style="margin-top:6px; text-align:center; font-weight:500;">0 Saved
+        Area(s)</div>
+    </div>
+
+    <div id="analysisTab" class="tab-content">
+      <div class="collapsible-box">
+        <div class="collapsible-header" onclick="toggleCollapsible('viewOptions')">
+          <span>🎥 View Options</span>
+          <span class="collapse-icon" id="viewOptions-icon">▼</span>
+        </div>
+        <div class="collapsible-content" id="viewOptions-content" style="background: #b1ab8652;">
+          <label class="filter-item" style="margin-bottom:8px; font-weight: 600;">
+            <input type="checkbox" id="toggleLabels" checked /> Show Area Labels
+          </label>
+          <label class="filter-item" id="toggleCategoryLabelsContainer"
+            style="margin-bottom:12px; font-weight: 600; display:none;">
+            <input type="checkbox" id="toggleCategoryLabels" checked /> Show Category Labels
+          </label>
+        </div>
+      </div>
+
+      <div class="collapsible-box">
+        <div class="collapsible-header" onclick="toggleCollapsible('heatmap')">
+          <span>🗺️ Heatmap Mode</span>
+          <span class="collapse-icon" id="heatmap-icon">▼</span>
+        </div>
+        <div class="collapsible-content" id="heatmap-content" style="background: #b1ab8652;">
+          <label class="filter-item" style="display:block; margin-bottom:8px;">
+            <input type="radio" name="heatmapMode" value="incidents" checked /> Incident Count
+          </label>
+          <label class="filter-item" style="display:block;">
+            <input type="radio" name="heatmapMode" value="distance" /> Distance/Time Map
+          </label>
+          <div id="distanceLoadingIndicator" class="loading-indicator" style="display:none;">Calculating distances...
+          </div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div style="font-weight:600; color: var(--dark-bg);">Legend</div>
+        <div class="legend-bar" id="legendBar"
+          style="background: linear-gradient(90deg, rgba(170, 170, 170, 0.4), rgba(0,0,255,0.9));"></div>
+        <div class="small-note" id="legendText">Gray = fewer incidents; Blue = greater incidents</div>
+        <div class="small-note" id="legendTextCategory" style="display:none; margin-top:4px;">Categories: Gray = fewer;
+          Blue = greater</div>
+      </div>
+
+      <div class="collapsible-box" style="margin-top:10px">
+        <div class="collapsible-header" onclick="toggleCollapsible('dataFilters')">
+          <span>🔍 Data Filters</span>
+          <span class="collapse-icon" id="dataFilters-icon">▼</span>
+        </div>
+        <div class="collapsible-content" id="dataFilters-content">
+          <div id="dynamicFiltersContainer">
+            <div class="small-note">Upload a CSV to see available filters</div>
+          </div>
+        </div>
+      </div>
+
+      <button id="clearFiltersBtn" class="secondary-btn" style="margin-top:12px;"><strong>Clear All
+          Filters</strong></button>
+
+      <div class="filter-section" style="margin-top:16px;">
+        <div class="section-title" style="margin-top:0;">Summary</div>
+        <div id="csvSummary" class="counts muted">No CSV loaded</div>
+      </div>
+
+      <div id="summaryContainer" class="summary-block" style="display:none;"></div>
+
+      <div class="details-scroll" id="detailsScroll" style="display:none;">
+        <table class="details-table" id="detailsTable">
+          <thead id="detailsTableHead">
+            <tr></tr>
+          </thead>
+          <tbody id="detailsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="map"></div>
+
+  <div class="map-overlay-text" style="text-align: center;">
+    Created by Priya Darbha and Roshan Ahmed. University of Texas at Dallas - University Emergency Medical Response, c.
+    2026
+  </div>
+
+  <script>
+    // Tab switching function
+    function switchTab(tabName) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+
+      // Remove active class from all buttons
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      // Show selected tab
+      document.getElementById(tabName + 'Tab').classList.add('active');
+
+      // Add active class to clicked button
+      event.target.classList.add('active');
+    }
+
+    function toggleCollapsible(sectionId) {
+      const content = document.getElementById(sectionId + '-content');
+      const icon = document.getElementById(sectionId + '-icon');
+
+      if (content.classList.contains('collapsed')) {
+        content.classList.remove('collapsed');
+        icon.classList.remove('collapsed');
+      } else {
+        content.classList.add('collapsed');
+        icon.classList.add('collapsed');
+      }
+    }
+
+    const DEFAULT_MAP_CENTER = { lat: 32.985962, lng: -96.750402, zoom: 16 };
+    const LS_MAP_CENTER = 'map_center_v1';
+    const LS_POLYGONS = 'polygons_v5';
+    const LS_CSV = 'polygons_csv_rows_v5';
+    const LS_STATION = 'station_location_v1';
+    const LS_DISTANCE_CACHE = 'distance_cache_v2';
+    const LS_ROUTING_MODE = 'routing_mode_v1';
+    const LS_CUSTOM_FILTERS = 'custom_filters_v1';
+
+    let mapCenter = DEFAULT_MAP_CENTER;
+    try {
+      const saved = localStorage.getItem(LS_MAP_CENTER);
+      if (saved) {
+        mapCenter = JSON.parse(saved);
+      }
+    } catch (e) { }
+
+    const map = L.map('map').setView([mapCenter.lat, mapCenter.lng], mapCenter.zoom);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    let drawing = false;
+    let polygonPoints = [];
+    let tempPolygon = null;
+    let tempMarkers = [];
+    let polygons = [];
+    let csvRows = [];
+    let _station = null;
+
+    let csvColumns = [];
+    let locationColumnName = '';
+    let filterableColumns = [];
+    let activeFilters = {};
+    let customFilters = [];
+
+    let categoryMode = false;
+    let selectedLocations = new Set();
+
+    let distanceDataCalculated = {};
+    let distanceCache = {};
+    let routingMode = 'bike';
+
+    let justFinishedDragging = false;
+
+    // Load routing mode from localStorage
+    try {
+      const savedMode = localStorage.getItem(LS_ROUTING_MODE);
+      if (savedMode) routingMode = savedMode;
+    } catch (e) { }
+
+    // Routing mode selector
+    document.querySelectorAll('.routing-mode-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.routing-mode-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        routingMode = this.dataset.mode;
+
+        try {
+          localStorage.setItem(LS_ROUTING_MODE, routingMode);
+        } catch (e) { }
+
+        const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
+        if (mode === 'distance' && _station && polygons.length > 0) {
+          updateShading();
+        }
+      });
+
+      if (btn.dataset.mode === routingMode) {
+        btn.classList.add('active');
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && drawing && polygonPoints.length > 0) {
+        e.preventDefault();
+        undoLastPoint();
+      }
+    });
+
+    function undoLastPoint() {
+      if (!drawing || polygonPoints.length === 0) return;
+
+      polygonPoints.pop();
+
+      const lastMarker = tempMarkers.pop();
+      if (lastMarker) {
+        map.removeLayer(lastMarker);
+        if (lastMarker._handleMove) map.off('mousemove', lastMarker._handleMove);
+        if (lastMarker._handleUp) map.off('mouseup', lastMarker._handleUp);
+        if (lastMarker._handleOut) map.off('mouseout', lastMarker._handleOut);
+      }
+
+      tempMarkers.forEach((m, i) => {
+        m._pointIndex = i;
+      });
+
+      updateTempPolygon();
+    }
+
+    function saveStationToLocalStorage() {
+      try {
+        if (_station && _station.latlng) {
+          localStorage.setItem(LS_STATION, JSON.stringify({
+            lat: _station.latlng.lat,
+            lng: _station.latlng.lng
+          }));
+        } else {
+          localStorage.removeItem(LS_STATION);
+        }
+      } catch (e) { }
+    }
+
+    function saveDistanceCacheToLocalStorage() {
+      try {
+        if (Object.keys(distanceCache).length > 0) {
+          localStorage.setItem(LS_DISTANCE_CACHE, JSON.stringify({
+            cache: distanceCache,
+            calculated: distanceDataCalculated
+          }));
+        } else {
+          localStorage.removeItem(LS_DISTANCE_CACHE);
+        }
+      } catch (e) { }
+    }
+
+    function loadDistanceCacheFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(LS_DISTANCE_CACHE);
+        if (!raw) return;
+
+        const data = JSON.parse(raw);
+        if (data.cache && typeof data.cache === 'object') {
+          distanceCache = data.cache;
+          distanceDataCalculated = data.calculated || {};
+        }
+      } catch (e) { }
+    }
+
+    function loadStationFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(LS_STATION);
+        if (!raw) return;
+
+        const data = JSON.parse(raw);
+        if (!data.lat || !data.lng) return;
+
+        const latlng = L.latLng(data.lat, data.lng);
+        const marker = L.marker(latlng, { draggable: true }).addTo(map);
+        marker.bindPopup('Station');
+
+        marker.on('dragend', () => {
+          _station.latlng = marker.getLatLng();
+          updateStationDisplay();
+          saveStationToLocalStorage();
+
+          distanceDataCalculated = {};
+          distanceCache = {};
+          saveDistanceCacheToLocalStorage();
+        });
+
+        marker.on('contextmenu', () => {
+          map.removeLayer(marker);
+          _station = null;
+          updateStationDisplay();
+          saveStationToLocalStorage();
+
+          distanceDataCalculated = {};
+          distanceCache = {};
+          saveDistanceCacheToLocalStorage();
+          updateShading();
+        });
+
+        _station = { marker, latlng };
+        updateStationDisplay();
+      } catch (e) { }
+    }
+
+    function updateStationDisplay() {
+      const display = document.getElementById('stationCoords');
+      if (_station && _station.latlng) {
+        display.innerText = `Lat: ${_station.latlng.lat.toFixed(6)}, Lng: ${_station.latlng.lng.toFixed(6)}`;
+      } else {
+        display.innerText = 'Station not set (required for Distance/Time Map)';
+      }
+    }
+
+    function updateMapCenterDisplay() {
+      const display = document.getElementById('mapCenterCoords');
+      if (mapCenter.lat === DEFAULT_MAP_CENTER.lat &&
+        mapCenter.lng === DEFAULT_MAP_CENTER.lng &&
+        mapCenter.zoom === DEFAULT_MAP_CENTER.zoom) {
+        display.textContent = `Default: Lat ${mapCenter.lat}, Lng ${mapCenter.lng}, Zoom ${mapCenter.zoom}`;
+      } else {
+        display.textContent = `Custom: Lat ${mapCenter.lat.toFixed(6)}, Lng ${mapCenter.lng.toFixed(6)}, Zoom ${mapCenter.zoom}`;
+      }
+    }
+
+    document.getElementById('setMapCenterBtn').addEventListener('click', async () => {
+      const input = prompt(
+        `Enter an address or location:\n\n` +
+        `Examples:\n` +
+        `- 800 W Campbell Rd\n` +
+        `- University of Texas at Dallas\n` +
+        `- 75080\n` +
+        `- Dallas, TX\n\n` +
+        `The map will center on this location.`
+      );
+
+      if (input === null || input.trim() === '') return;
+
+      const address = input.trim();
+
+      try {
+        const encodedAddress = encodeURIComponent(address);
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=1`);
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lng = parseFloat(data[0].lon);
+          const displayName = data[0].display_name;
+
+          const confirm = window.confirm(
+            `Found location:\n${displayName}\n\n` +
+            `Latitude: ${lat.toFixed(6)}\n` +
+            `Longitude: ${lng.toFixed(6)}\n\n` +
+            `Center map here?`
+          );
+
+          if (!confirm) return;
+
+          const currentZoom = map.getZoom();
+
+          mapCenter = { lat, lng, zoom: currentZoom };
+          try {
+            localStorage.setItem(LS_MAP_CENTER, JSON.stringify(mapCenter));
+          } catch (e) { }
+
+          map.setView([lat, lng], currentZoom);
+          updateMapCenterDisplay();
+          alert('Map center saved!');
+        } else {
+          alert('Location not found. Please try a different address or be more specific.');
+        }
+      } catch (error) {
+        console.error('Geocoding error:', error);
+        alert('Error finding location. Please check your internet connection and try again.');
+      }
+    });
+
+    document.getElementById('setCurrentAsDefaultBtn').addEventListener('click', () => {
+      const currentCenter = map.getCenter();
+      const currentZoom = map.getZoom();
+
+      const confirmMsg = `Set current view as default?\n\n` +
+        `Latitude: ${currentCenter.lat.toFixed(6)}\n` +
+        `Longitude: ${currentCenter.lng.toFixed(6)}\n` +
+        `Zoom: ${currentZoom}`;
+
+      if (!confirm(confirmMsg)) return;
+
+      mapCenter = {
+        lat: currentCenter.lat,
+        lng: currentCenter.lng,
+        zoom: currentZoom
+      };
+
+      try {
+        localStorage.setItem(LS_MAP_CENTER, JSON.stringify(mapCenter));
+      } catch (e) { }
+
+      updateMapCenterDisplay();
+      alert('Current view set as default!');
+    });
+
+    document.getElementById('resetMapCenterBtn').addEventListener('click', () => {
+      if (!confirm('Reset map view to saved default?')) return;
+
+      map.setView([mapCenter.lat, mapCenter.lng], mapCenter.zoom);
+      alert('Map view reset to default!');
+    });
+
+    function savePolygonsToLocalStorage() {
+      try {
+        const simple = polygons.map(p => ({
+          name: p.name,
+          coords: p.coords,
+          isCategory: p.isCategory || false,
+          categoryLocations: p.categoryLocations || []
+        }));
+        localStorage.setItem(LS_POLYGONS, JSON.stringify(simple));
+      } catch (e) { }
+    }
+
+    function loadPolygonsFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(LS_POLYGONS);
+        if (!raw) return;
+        const items = JSON.parse(raw);
+        if (!Array.isArray(items)) return;
+        items.forEach(p => {
+          const color = p.isCategory ? '#000' : 'blue';
+          const fillColor = p.isCategory ? 'rgba(0,0,255,0.4)' : 'rgba(0,0,255,0.4)';
+          const weight = p.isCategory ? 3 : 2;
+          const layer = L.polygon(p.coords, { color, fillColor, weight }).addTo(map);
+          const polyObj = {
+            name: p.name,
+            coords: p.coords,
+            layer,
+            isCategory: p.isCategory || false,
+            categoryLocations: p.categoryLocations || []
+          };
+          polygons.push(polyObj);
+          createLabelForPolygon(polyObj);
+
+          if (polyObj.isCategory) {
+            if (layer && map.hasLayer(layer)) {
+              map.removeLayer(layer);
+            }
+            if (polyObj.label && map.hasLayer(polyObj.label)) {
+              map.removeLayer(polyObj.label);
+            }
+          }
+        });
+        updatePolygonList();
+      } catch (e) { }
+    }
+
+    function saveCsvToLocalStorage() {
+      try {
+        localStorage.setItem(LS_CSV, JSON.stringify({
+          rows: csvRows,
+          columns: csvColumns,
+          locationColumn: locationColumnName,
+          filterableColumns: filterableColumns
+        }));
+      } catch (e) { }
+    }
+
+    function loadCsvFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(LS_CSV);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        csvRows = data.rows || [];
+        csvColumns = data.columns || [];
+        locationColumnName = data.locationColumn || '';
+        filterableColumns = data.filterableColumns || [];
+
+        if (csvRows.length > 0) {
+          activeFilters = {};
+          filterableColumns.forEach(col => {
+            activeFilters[col] = new Set();
+          });
+
+          buildDynamicFilters();
+          updateCsvSummary();
+        }
+      } catch (e) { }
+    }
+
+    function saveCustomFiltersToLocalStorage() {
+      try {
+        localStorage.setItem(LS_CUSTOM_FILTERS, JSON.stringify(customFilters));
+      } catch (e) { }
+    }
+
+    function loadCustomFiltersFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(LS_CUSTOM_FILTERS);
+        if (!raw) return;
+        customFilters = JSON.parse(raw);
+        renderCustomFilters();
+      } catch (e) { }
+    }
+
+    function createLabelForPolygon(poly) {
+      let latSum = 0, lngSum = 0;
+      poly.coords.forEach(c => { latSum += c[0]; lngSum += c[1]; });
+      const centroid = [latSum / poly.coords.length, lngSum / poly.coords.length];
+      poly.centroid = centroid;
+
+      const iconClass = poly.isCategory ? 'category-label' : 'poly-label';
+      const icon = L.divIcon({ className: iconClass, html: `${poly.name}`, iconSize: null });
+      const marker = L.marker(centroid, { icon });
+
+      const shouldShow = poly.isCategory
+        ? document.getElementById('toggleCategoryLabels').checked
+        : document.getElementById('toggleLabels').checked;
+
+      if (shouldShow) {
+        marker.addTo(map);
+      }
+
+      poly.label = marker;
+
+      poly.layer.on('click', () => {
+        showPolygonPopup(poly);
+      });
+
+      poly.layer.on('contextmenu', function (e) {
+        try { e.originalEvent.preventDefault(); } catch (_) { }
+        if (!confirm(`Delete ${poly.isCategory ? 'category' : 'polygon'} "${poly.name}"?`)) return;
+        const idx = polygons.findIndex(p => p.layer === poly.layer);
+        if (idx >= 0) deletePolygon(idx);
+      });
+    }
+
+    document.getElementById('toggleLabels').addEventListener('change', e => {
+      const show = e.target.checked;
+      polygons.forEach(p => {
+        if (p.isCategory) return;
+        if (!p.label) return;
+        if (show) {
+          if (!map.hasLayer(p.label)) p.label.addTo(map);
+        } else {
+          if (map.hasLayer(p.label)) map.removeLayer(p.label);
+        }
+      });
+    });
+
+    document.getElementById('toggleCategoryLabels').addEventListener('change', e => {
+      const show = e.target.checked;
+      polygons.forEach(p => {
+        if (!p.isCategory) return;
+        if (!p.label) return;
+        if (show) {
+          if (!map.hasLayer(p.label)) p.label.addTo(map);
+        } else {
+          if (map.hasLayer(p.label)) map.removeLayer(p.label);
+        }
+      });
+    });
+
+    document.querySelectorAll('input[name="heatmapMode"]').forEach(radio => {
+      radio.addEventListener('change', async () => {
+        const mode = radio.value;
+        const hasCategories = polygons.some(p => p.isCategory);
+
+        if (mode === 'distance') {
+          document.getElementById('legendBar').style.background = 'linear-gradient(90deg, rgba(255,0,0,0.9), rgba(0,255,0,0.3))';
+          document.getElementById('legendText').textContent = 'Areas: Red = Slower/Green = Faster';
+
+          if (hasCategories) {
+            document.getElementById('legendTextCategory').style.display = 'block';
+            document.getElementById('legendTextCategory').textContent = 'Categories: Red = Slower/Green = Faster';
+          } else {
+            document.getElementById('legendTextCategory').style.display = 'none';
+          }
+
+          if (!_station) {
+            alert('Please set a station location first for Distance/Time Map');
+            document.querySelector('input[name="heatmapMode"][value="incidents"]').checked = true;
+            document.getElementById('legendBar').style.background = 'linear-gradient(90deg, rgba(170,170,170,0.4), rgba(0,0,255,0.9))';
+            document.getElementById('legendText').textContent = 'Gray = fewer incidents; Blue = greater incidents';
+
+            if (hasCategories) {
+              document.getElementById('legendTextCategory').style.display = 'block';
+              document.getElementById('legendTextCategory').textContent = 'Categories: Gray = fewer; Blue = greater';
+            } else {
+              document.getElementById('legendTextCategory').style.display = 'none';
+            }
+            return;
+          }
+
+          if (!csvColumns.includes('timeElapsed')) {
+            alert('CSV must include a "timeElapsed" column for Distance/Time Map');
+            document.querySelector('input[name="heatmapMode"][value="incidents"]').checked = true;
+            document.getElementById('legendBar').style.background = 'linear-gradient(90deg, rgba(170,170,170,0.4), rgba(0,0,255,0.9))';
+            document.getElementById('legendText').textContent = 'Gray = fewer incidents; Blue = greater incidents';
+
+            if (hasCategories) {
+              document.getElementById('legendTextCategory').style.display = 'block';
+              document.getElementById('legendTextCategory').textContent = 'Categories: Gray = fewer; Blue = greater';
+            } else {
+              document.getElementById('legendTextCategory').style.display = 'none';
+            }
+            return;
+          }
+
+          if (!distanceDataCalculated[routingMode]) {
+            document.getElementById('distanceLoadingIndicator').style.display = 'block';
+            await calculateDistanceTimeRatios();
+            document.getElementById('distanceLoadingIndicator').style.display = 'none';
+            distanceDataCalculated[routingMode] = true;
+          }
+
+          updateShading();
+        } else {
+          document.getElementById('legendBar').style.background = 'linear-gradient(90deg, rgba(170,170,170,0.4), rgba(0,0,255,0.9))';
+          document.getElementById('legendText').textContent = 'Areas: Gray = fewer; Blue = greater';
+
+          if (hasCategories) {
+            document.getElementById('legendTextCategory').style.display = 'block';
+            document.getElementById('legendTextCategory').textContent = 'Categories: Gray = fewer; Blue = greater';
+          } else {
+            document.getElementById('legendTextCategory').style.display = 'none';
+          }
+
+          updateShading();
+        }
+      });
+    });
+
+    function updateCategoryLabelToggleVisibility() {
+      const hasCategories = polygons.some(p => p.isCategory);
+      const container = document.getElementById('toggleCategoryLabelsContainer');
+      container.style.display = hasCategories ? 'flex' : 'none';
+    }
+
+    function updateLegendDisplay() {
+      const hasCategories = polygons.some(p => p.isCategory);
+      const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
+
+      if (hasCategories) {
+        document.getElementById('legendTextCategory').style.display = 'block';
+        if (mode === 'distance') {
+          document.getElementById('legendTextCategory').textContent = 'Categories: Red = Slower/Green = Faster';
+        } else {
+          document.getElementById('legendTextCategory').textContent = 'Categories: Gray = fewer; Blue = greater';
+        }
+      } else {
+        document.getElementById('legendTextCategory').style.display = 'none';
+      }
+    }
+
+    function deletePolygon(index) {
+      const p = polygons[index];
+      if (!p) return;
+      try { if (p.layer) map.removeLayer(p.layer); } catch (e) { }
+      try { if (p.label) map.removeLayer(p.label); } catch (e) { }
+
+      Object.keys(distanceCache).forEach(mode => {
+        if (distanceCache[mode] && distanceCache[mode][p.name]) {
+          delete distanceCache[mode][p.name];
+        }
+      });
+
+      polygons.splice(index, 1);
+      savePolygonsToLocalStorage();
+      saveDistanceCacheToLocalStorage();
+      updatePolygonList();
+      updateCategoryLabelToggleVisibility();
+      updateLegendDisplay();
+      updateShading();
+    }
+
+    function updatePolygonList() {
+      const regularCount = polygons.filter(p => !p.isCategory).length;
+      const categoryCount = polygons.filter(p => p.isCategory).length;
+      let text = `${regularCount} Area(s)`;
+      if (categoryCount > 0) {
+        text += `, ${categoryCount} Category(ies)`;
+      }
+      document.getElementById('polygonList').innerText = `Current Selection: ${text}`;
+    }
+
+    function resetAll() {
+      if (!confirm('This will remove all polygons, CSV data, and custom filters. Continue?')) return;
+
+      polygons.forEach(p => {
+        try { map.removeLayer(p.layer); } catch (_) { }
+        try { map.removeLayer(p.label); } catch (_) { }
+      });
+      polygons = [];
+      csvRows = [];
+      csvColumns = [];
+      locationColumnName = '';
+      filterableColumns = [];
+      activeFilters = {};
+      customFilters = [];
+      distanceDataCalculated = {};
+      distanceCache = {};
+
+      savePolygonsToLocalStorage();
+      saveCsvToLocalStorage();
+      saveDistanceCacheToLocalStorage();
+      saveCustomFiltersToLocalStorage();
+      updatePolygonList();
+      updateCsvSummary();
+      updateShading();
+      clearDetailsPanel();
+      clearDynamicFilters();
+      renderCustomFilters();
+    }
+
+    function resetCsvDataOnly() {
+      if (!confirm('Delete uploaded CSV rows but keep polygons and custom filters?')) return;
+      csvRows = [];
+      csvColumns = [];
+      locationColumnName = '';
+      filterableColumns = [];
+      activeFilters = {};
+      distanceDataCalculated = {};
+      distanceCache = {};
+
+      saveCsvToLocalStorage();
+      saveDistanceCacheToLocalStorage();
+      updateCsvSummary();
+      updateShading();
+      clearDetailsPanel();
+      clearDynamicFilters();
+      alert('CSV data cleared.');
+    }
+
+    function updateTempPolygon() {
+      if (tempPolygon) {
+        map.removeLayer(tempPolygon);
+      }
+      if (polygonPoints.length >= 2) {
+        const color = categoryMode ? '#0a400c' : 'red';
+        const fillColor = categoryMode ? 'rgba(162,123,92,0.3)' : 'rgba(255,0,0,0.3)';
+        tempPolygon = L.polygon(polygonPoints, {
+          color,
+          fillColor,
+          weight: 3,
+          dashArray: '4'
+        }).addTo(map);
+      }
+    }
+
+    function createDraggableMarker(latlng, index) {
+      const marker = L.circleMarker(latlng, {
+        radius: 10,
+        fillColor: categoryMode ? '#b1ab86' : '#ff0000',
+        color: '#ffffff',
+        weight: 3,
+        opacity: 1,
+        fillOpacity: 0.8,
+        interactive: true,
+        bubblingMouseEvents: false
+      }).addTo(map);
+
+      let isDragging = false;
+      let hasDragged = false;
+
+      // Prevent any map interactions when over the marker
+      marker.on('add', function() {
+        const element = marker._path || marker._icon;
+        if (element) {
+          element.style.cursor = 'move';
+          element.style.pointerEvents = 'all';
+        }
+      });
+
+      marker.on('mousedown', (e) => {
+        isDragging = true;
+        hasDragged = false;
+        // Disable all map interactions
+        map.dragging.disable();
+        map.doubleClickZoom.disable();
+        map.scrollWheelZoom.disable();
+        L.DomEvent.stopPropagation(e);
+        L.DomEvent.preventDefault(e);
+      });
+
+      // Prevent map click event from firing when clicking on marker
+      marker.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        L.DomEvent.preventDefault(e);
+      });
+
+      const handleMove = (e) => {
+        if (isDragging) {
+          hasDragged = true;
+          marker.setLatLng(e.latlng);
+          polygonPoints[index] = [e.latlng.lat, e.latlng.lng];
+          updateTempPolygon();
+          L.DomEvent.stopPropagation(e);
+          L.DomEvent.preventDefault(e);
+        }
+      };
+
+      const handleUp = (e) => {
+        if (isDragging) {
+          isDragging = false;
+          // Re-enable all map interactions
+          map.dragging.enable();
+          map.doubleClickZoom.enable();
+          map.scrollWheelZoom.enable();
+
+          if (hasDragged) {
+            justFinishedDragging = true;
+            setTimeout(() => {
+              justFinishedDragging = false;
+            }, 100);
+          }
+          
+          if (e) {
+            L.DomEvent.stopPropagation(e);
+            L.DomEvent.preventDefault(e);
+          }
+        }
+      };
+
+      map.on('mousemove', handleMove);
+      map.on('mouseup', handleUp);
+      marker.on('mouseup', handleUp);
+      
+      // Also handle mouse leaving the map entirely
+      map.on('mouseout', handleUp);
+
+      marker.on('contextmenu', (e) => {
+        L.DomEvent.stopPropagation(e);
+        L.DomEvent.preventDefault(e);
+        if (polygonPoints.length > 3) {
+          map.removeLayer(marker);
+          map.off('mousemove', handleMove);
+          map.off('mouseup', handleUp);
+          map.off('mouseout', handleUp);
+
+          polygonPoints.splice(index, 1);
+          tempMarkers.splice(index, 1);
+
+          tempMarkers.forEach((m, i) => {
+            m._pointIndex = i;
+          });
+
+          updateTempPolygon();
+        } else {
+          alert('Need at least 3 points for a polygon.');
+        }
+      });
+
+      marker._pointIndex = index;
+      marker._handleMove = handleMove;
+      marker._handleUp = handleUp;
+      marker._handleOut = handleUp;
+      return marker;
+    }
+
+    document.getElementById('categoryModeToggle').addEventListener('change', e => {
+      categoryMode = e.target.checked;
+      const controls = document.getElementById('categoryModeControls');
+      const banner = document.getElementById('categoryModeBanner');
+
+      if (categoryMode) {
+        controls.style.display = 'block';
+        banner.style.display = 'block';
+
+        polygons.forEach(p => {
+          if (!p.isCategory) {
+            if (p.layer && map.hasLayer(p.layer)) {
+              map.removeLayer(p.layer);
+            }
+            if (p.label && map.hasLayer(p.label)) {
+              map.removeLayer(p.label);
+            }
+          }
+        });
+
+        const categoryLabelsVisible = document.getElementById('toggleCategoryLabels').checked;
+        polygons.forEach(p => {
+          if (p.isCategory) {
+            if (p.layer && !map.hasLayer(p.layer)) {
+              p.layer.addTo(map);
+            }
+            if (p.label && !map.hasLayer(p.label) && categoryLabelsVisible) {
+              p.label.addTo(map);
+            }
+          }
+        });
+
+        updateShading();
+      } else {
+        controls.style.display = 'none';
+        banner.style.display = 'none';
+
+        polygons.forEach(p => {
+          if (p.isCategory) {
+            if (p.layer && map.hasLayer(p.layer)) {
+              map.removeLayer(p.layer);
+            }
+            if (p.label && map.hasLayer(p.label)) {
+              map.removeLayer(p.label);
+            }
+          }
+        });
+
+        const labelsVisible = document.getElementById('toggleLabels').checked;
+        polygons.forEach(p => {
+          if (!p.isCategory) {
+            if (p.layer && !map.hasLayer(p.layer)) {
+              p.layer.addTo(map);
+            }
+            if (p.label && !map.hasLayer(p.label) && labelsVisible) {
+              p.label.addTo(map);
+            }
+          }
+        });
+
+        if (drawing) {
+          drawing = false;
+          document.getElementById('startBtn').disabled = false;
+          document.getElementById('finishBtn').disabled = true;
+          document.getElementById('startCategoryBtn').disabled = false;
+          document.getElementById('finishCategoryBtn').disabled = true;
+          document.getElementById('locationSelectionContainer').style.display = 'none';
+
+          if (tempPolygon) map.removeLayer(tempPolygon);
+          tempMarkers.forEach(m => {
+            map.removeLayer(m);
+            if (m._handleMove) map.off('mousemove', m._handleMove);
+            if (m._handleUp) map.off('mouseup', m._handleUp);
+            if (m._handleOut) map.off('mouseout', m._handleOut);
+          });
+          tempMarkers = [];
+          polygonPoints = [];
+          selectedLocations.clear();
+        }
+
+        updateShading();
+      }
+    });
+
+    function getUniqueLocations() {
+      const locations = new Set();
+      csvRows.forEach(row => {
+        const loc = row[locationColumnName];
+        if (loc && loc.trim() !== '') {
+          locations.add(loc.trim());
+        }
+      });
+      return Array.from(locations).sort();
+    }
+
+    function buildLocationCheckboxList() {
+      const container = document.getElementById('locationCheckboxList');
+      const searchBox = document.getElementById('locationSearchBox');
+      container.innerHTML = '';
+
+      searchBox.value = '';
+
+      const locations = getUniqueLocations();
+
+      if (locations.length === 0) {
+        container.innerHTML = '<div class="small-note">No locations found in CSV</div>';
+        return;
+      }
+
+      const renderLocations = (filterText = '') => {
+        container.innerHTML = '';
+
+        const filteredLocations = filterText.trim() === ''
+          ? locations
+          : locations.filter(loc => loc.toLowerCase().includes(filterText.toLowerCase()));
+
+        if (filteredLocations.length === 0) {
+          container.innerHTML = '<div class="small-note">No locations match your search</div>';
+          return;
+        }
+
+        filteredLocations.forEach(loc => {
+          const item = document.createElement('div');
+          item.className = 'location-checkbox-item';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.value = loc;
+          checkbox.id = `loc-checkbox-${loc.replace(/\s+/g, '-')}`;
+
+          if (selectedLocations.has(loc)) {
+            checkbox.checked = true;
+          }
+
+          checkbox.addEventListener('change', e => {
+            if (e.target.checked) {
+              selectedLocations.add(loc);
+            } else {
+              selectedLocations.delete(loc);
+            }
+          });
+
+          const label = document.createElement('label');
+          label.setAttribute('for', checkbox.id);
+          label.textContent = loc;
+          label.style.cursor = 'pointer';
+
+          item.appendChild(checkbox);
+          item.appendChild(label);
+          container.appendChild(item);
+        });
+      };
+
+      renderLocations();
+
+      searchBox.addEventListener('input', (e) => {
+        renderLocations(e.target.value);
+      });
+    }
+
+    document.getElementById('startCategoryBtn').addEventListener('click', function () {
+      if (csvRows.length === 0) {
+        alert('Please upload a CSV file first to create categories.');
+        return;
+      }
+
+      drawing = true;
+      polygonPoints = [];
+      selectedLocations.clear();
+
+      tempMarkers.forEach(m => {
+        map.removeLayer(m);
+        if (m._handleMove) map.off('mousemove', m._handleMove);
+        if (m._handleUp) map.off('mouseup', m._handleUp);
+        if (m._handleOut) map.off('mouseout', m._handleOut);
+      });
+      tempMarkers = [];
+
+      if (tempPolygon) map.removeLayer(tempPolygon);
+      tempPolygon = null;
+
+      this.disabled = true;
+      document.getElementById('finishCategoryBtn').disabled = false;
+      document.getElementById('locationSelectionContainer').style.display = 'block';
+
+      buildLocationCheckboxList();
+    });
+
+    document.getElementById('finishCategoryBtn').addEventListener('click', function () {
+      drawing = false;
+      this.disabled = true;
+      document.getElementById('startCategoryBtn').disabled = false;
+      document.getElementById('locationSelectionContainer').style.display = 'none';
+
+      if (polygonPoints.length < 3) {
+        alert('Need at least 3 points.');
+        return;
+      }
+
+      if (selectedLocations.size === 0) {
+        alert('Please select at least one location for this category.');
+        return;
+      }
+
+      if (tempPolygon) map.removeLayer(tempPolygon);
+      tempMarkers.forEach(m => {
+        map.removeLayer(m);
+        if (m._handleMove) map.off('mousemove', m._handleMove);
+        if (m._handleUp) map.off('mouseup', m._handleUp);
+        if (m._handleOut) map.off('mouseout', m._handleOut);
+      });
+      tempMarkers = [];
+
+      let categoryName = prompt('Enter a name for this category:');
+      if (!categoryName) categoryName = 'Unnamed Category';
+
+      const finalPolygon = L.polygon(polygonPoints, {
+        color: '#0a400c',
+        fillColor: 'rgba(162,123,92,0.4)',
+        weight: 3
+      }).addTo(map);
+
+      const polyObj = {
+        name: categoryName.trim(),
+        coords: polygonPoints,
+        layer: finalPolygon,
+        isCategory: true,
+        categoryLocations: Array.from(selectedLocations)
+      };
+
+      let latSum = 0, lngSum = 0;
+      polyObj.coords.forEach(c => {
+        latSum += c[0];
+        lngSum += c[1];
+      });
+      polyObj.centroid = [latSum / polyObj.coords.length, lngSum / polyObj.coords.length];
+
+      polygons.push(polyObj);
+      createLabelForPolygon(polyObj);
+      savePolygonsToLocalStorage();
+      updatePolygonList();
+      updateCategoryLabelToggleVisibility();
+      updateLegendDisplay();
+
+      selectedLocations.clear();
+      distanceDataCalculated = {};
+
+      updateShading();
+    });
+
+    document.getElementById('startBtn').addEventListener('click', function () {
+      drawing = true;
+      polygonPoints = [];
+
+      tempMarkers.forEach(m => {
+        map.removeLayer(m);
+        if (m._handleMove) map.off('mousemove', m._handleMove);
+        if (m._handleUp) map.off('mouseup', m._handleUp);
+        if (m._handleOut) map.off('mouseout', m._handleOut);
+      });
+      tempMarkers = [];
+
+      if (tempPolygon) map.removeLayer(tempPolygon);
+      tempPolygon = null;
+
+      this.disabled = true;
+      document.getElementById('finishBtn').disabled = false;
+    });
+
+    document.getElementById('finishBtn').addEventListener('click', function () {
+      drawing = false;
+      this.disabled = true;
+      document.getElementById('startBtn').disabled = false;
+
+      if (polygonPoints.length < 3) {
+        alert('Need at least 3 points.');
+        return;
+      }
+
+      if (tempPolygon) map.removeLayer(tempPolygon);
+      tempMarkers.forEach(m => {
+        map.removeLayer(m);
+        if (m._handleMove) map.off('mousemove', m._handleMove);
+        if (m._handleUp) map.off('mouseup', m._handleUp);
+        if (m._handleOut) map.off('mouseout', m._handleOut);
+      });
+      tempMarkers = [];
+
+      let polyName = prompt('Enter a name for this polygon:');
+      if (!polyName) polyName = 'Unnamed Polygon';
+
+      const finalPolygon = L.polygon(polygonPoints, {
+        color: 'blue',
+        fillColor: 'rgba(0,0,255,0.4)',
+        weight: 2
+      }).addTo(map);
+
+      const polyObj = {
+        name: polyName.trim(),
+        coords: polygonPoints,
+        layer: finalPolygon,
+        isCategory: false,
+        categoryLocations: []
+      };
+
+      let latSum = 0, lngSum = 0;
+      polyObj.coords.forEach(c => {
+        latSum += c[0];
+        lngSum += c[1];
+      });
+      polyObj.centroid = [latSum / polyObj.coords.length, lngSum / polyObj.coords.length];
+
+      polygons.push(polyObj);
+      createLabelForPolygon(polyObj);
+      savePolygonsToLocalStorage();
+      updatePolygonList();
+      updateLegendDisplay();
+
+      distanceDataCalculated = {};
+
+      updateShading();
+    });
+
+    map.on('click', function (e) {
+      if (!drawing) return;
+
+      if (justFinishedDragging) {
+        return;
+      }
+
+      const newPoint = [e.latlng.lat, e.latlng.lng];
+      const index = polygonPoints.length;
+
+      polygonPoints.push(newPoint);
+
+      const marker = createDraggableMarker(e.latlng, index);
+      tempMarkers.push(marker);
+
+      updateTempPolygon();
+    });
+
+    document.getElementById('setStationBtn').addEventListener('click', () => {
+      alert('Click anywhere on the map to place the station marker.');
+      map.once('click', function (e) {
+        const latlng = e.latlng;
+
+        if (_station && _station.marker) map.removeLayer(_station.marker);
+
+        const marker = L.marker(latlng, { draggable: true }).addTo(map);
+        marker.bindPopup('Station').openPopup();
+
+        marker.on('dragend', () => {
+          _station.latlng = marker.getLatLng();
+          updateStationDisplay();
+          saveStationToLocalStorage();
+
+          distanceDataCalculated = false;
+          distanceCache = {};
+          saveDistanceCacheToLocalStorage();
+        });
+
+        marker.on('contextmenu', () => {
+          map.removeLayer(marker);
+          _station = null;
+          updateStationDisplay();
+          saveStationToLocalStorage();
+
+          distanceDataCalculated = false;
+          distanceCache = {};
+          saveDistanceCacheToLocalStorage();
+          updateShading();
+        });
+
+        _station = { marker, latlng };
+        updateStationDisplay();
+        saveStationToLocalStorage();
+
+        distanceDataCalculated = {};
+        distanceCache = {};
+        saveDistanceCacheToLocalStorage();
+      });
+    });
+
+    function parseCSV(text) {
+      const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+      if (lines.length === 0) return { rows: [], columns: [], locationColumn: '', filterableColumns: [] };
+
+      const headerRaw = lines[0].split(',').map(h => h.trim());
+      csvColumns = headerRaw;
+
+      locationColumnName = '';
+      for (let col of headerRaw) {
+        if (col.toLowerCase() === 'location') {
+          locationColumnName = col;
+          break;
+        }
+      }
+
+      if (!locationColumnName) {
+        alert('Warning: No column named "location" found. Using first column as location identifier.');
+        locationColumnName = headerRaw[0];
+      }
+
+      filterableColumns = [];
+      const sampleRow = lines.length > 1 ? lines[1].split(',').map(c => c.trim()) : [];
+
+      headerRaw.forEach((colName, idx) => {
+        if (colName === locationColumnName) return;
+
+        const sampleValue = sampleRow[idx];
+        if (sampleValue && !isNaN(sampleValue) && sampleValue !== '') {
+          return;
+        }
+
+        filterableColumns.push(colName);
+      });
+
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(',').map(c => c.trim());
+        if (!cols[headerRaw.indexOf(locationColumnName)]) continue;
+
+        const rowObj = {};
+        headerRaw.forEach((colName, idx) => {
+          rowObj[colName] = cols[idx] || '';
+        });
+
+        rows.push(rowObj);
+      }
+
+      return { rows, columns: csvColumns, locationColumn: locationColumnName, filterableColumns };
+    }
+
+    document.getElementById('csvFile').addEventListener('change', function (ev) {
+      const f = ev.target.files && ev.target.files[0];
+      if (!f) return;
+      const rdr = new FileReader();
+      rdr.onload = function (e) {
+        try {
+          const parsed = parseCSV(e.target.result);
+          csvRows = parsed.rows;
+          csvColumns = parsed.columns;
+          locationColumnName = parsed.locationColumn;
+          filterableColumns = parsed.filterableColumns;
+
+          activeFilters = {};
+          filterableColumns.forEach(col => {
+            activeFilters[col] = new Set();
+          });
+
+          distanceDataCalculated = {};
+
+          saveCsvToLocalStorage();
+          buildDynamicFilters();
+          updateCsvSummary();
+          updateShading();
+          alert(`CSV imported: ${csvRows.length} rows with ${filterableColumns.length} filterable column(s).\nLocation column: "${locationColumnName}"`);
+          clearDetailsPanel();
+        } catch (err) {
+          alert('CSV parse error: ' + err.message);
+        }
+      };
+      rdr.readAsText(f);
+      ev.target.value = '';
+    });
+
+    document.getElementById('createCustomFilterBtn').addEventListener('click', () => {
+      if (csvColumns.length === 0) {
+        alert('Please upload a CSV file first.');
+        return;
+      }
+
+      const availableColumns = csvColumns.filter(col => col !== locationColumnName);
+
+      if (availableColumns.length === 0) {
+        alert('No filterable columns found in CSV.');
+        return;
+      }
+
+      const columnChoice = prompt(`Select a column:\n${availableColumns.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\nEnter number:`);
+      if (!columnChoice) return;
+
+      const colIndex = parseInt(columnChoice) - 1;
+      if (colIndex < 0 || colIndex >= availableColumns.length) {
+        alert('Invalid selection.');
+        return;
+      }
+
+      const selectedColumn = availableColumns[colIndex];
+
+      const filterName = prompt(`Enter a name for this filter (e.g., "Age Groups", "Response Time Categories"):`);
+      if (!filterName || filterName.trim() === '') return;
+
+      const rangesInput = prompt(
+        `Define ranges separated by semicolons.\n\n` +
+        `Format: <VALUE or MIN-MAX or >VALUE\n\n` +
+        `Examples:\n` +
+        `<18;18-30;>30\n` +
+        `<2;2-4.5;>4.5\n` +
+        `0-10;10-20;20-30;>30`
+      );
+
+      if (!rangesInput || rangesInput.trim() === '') return;
+
+      const rangeStrings = rangesInput.split(';').map(r => r.trim()).filter(r => r !== '');
+      const ranges = [];
+
+      for (let rangeStr of rangeStrings) {
+        if (rangeStr.startsWith('<')) {
+          const val = parseFloat(rangeStr.substring(1));
+          if (isNaN(val)) {
+            alert(`Invalid range: ${rangeStr}`);
+            return;
+          }
+          ranges.push({ type: 'less', value: val, label: rangeStr });
+        } else if (rangeStr.startsWith('>')) {
+          const val = parseFloat(rangeStr.substring(1));
+          if (isNaN(val)) {
+            alert(`Invalid range: ${rangeStr}`);
+            return;
+          }
+          ranges.push({ type: 'greater', value: val, label: rangeStr });
+        } else if (rangeStr.includes('-')) {
+          const parts = rangeStr.split('-');
+          if (parts.length !== 2) {
+            alert(`Invalid range: ${rangeStr}`);
+            return;
+          }
+          const min = parseFloat(parts[0]);
+          const max = parseFloat(parts[1]);
+          if (isNaN(min) || isNaN(max)) {
+            alert(`Invalid range: ${rangeStr}`);
+            return;
+          }
+          ranges.push({ type: 'between', min, max, label: rangeStr });
+        } else {
+          alert(`Invalid range format: ${rangeStr}`);
+          return;
+        }
+      }
+
+      const customFilter = {
+        id: Date.now(),
+        name: filterName.trim(),
+        column: selectedColumn,
+        ranges: ranges,
+        activeRanges: new Set()
+      };
+
+      customFilters.push(customFilter);
+      saveCustomFiltersToLocalStorage();
+      renderCustomFilters();
+    });
+
+    function renderCustomFilters() {
+      const container = document.getElementById('customFiltersContainer');
+      container.innerHTML = '';
+
+      if (customFilters.length === 0) return;
+
+      customFilters.forEach(filter => {
+        const filterBox = document.createElement('div');
+        filterBox.className = 'custom-filter-item';
+
+        const header = document.createElement('div');
+        header.className = 'custom-filter-header';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'custom-filter-name';
+        nameSpan.textContent = `${filter.name} (${filter.column})`;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'custom-filter-delete';
+        deleteBtn.textContent = '🗑️ Delete';
+        deleteBtn.addEventListener('click', () => {
+          if (confirm(`Delete custom filter "${filter.name}"?`)) {
+            customFilters = customFilters.filter(f => f.id !== filter.id);
+            saveCustomFiltersToLocalStorage();
+            renderCustomFilters();
+            updateCsvSummary();
+            updateShading();
+          }
+        });
+
+        header.appendChild(nameSpan);
+        header.appendChild(deleteBtn);
+        filterBox.appendChild(header);
+
+        const conditionsDiv = document.createElement('div');
+        conditionsDiv.className = 'custom-filter-conditions';
+
+        filter.ranges.forEach(range => {
+          const label = document.createElement('label');
+          label.className = 'filter-item';
+          label.style.display = 'block';
+          label.style.marginTop = '4px';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = filter.activeRanges.has(range.label);
+
+          checkbox.addEventListener('change', e => {
+            if (e.target.checked) {
+              filter.activeRanges.add(range.label);
+            } else {
+              filter.activeRanges.delete(range.label);
+            }
+
+            saveCustomFiltersToLocalStorage();
+
+            const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
+            if (mode === 'distance' && distanceDataCalculated) {
+              updateDistanceTimeMetrics();
+            }
+
+            updateCsvSummary();
+            updateShading();
+          });
+
+          label.appendChild(checkbox);
+          label.appendChild(document.createTextNode(' ' + range.label));
+          conditionsDiv.appendChild(label);
+        });
+
+        filterBox.appendChild(conditionsDiv);
+        container.appendChild(filterBox);
+      });
+    }
+
+    function applyCustomFilters(row) {
+      for (let filter of customFilters) {
+        if (filter.activeRanges.size === 0) continue;
+
+        const value = parseFloat(row[filter.column]);
+        if (isNaN(value)) return false;
+
+        let matchesAnyRange = false;
+        for (let rangeLabel of filter.activeRanges) {
+          const range = filter.ranges.find(r => r.label === rangeLabel);
+          if (!range) continue;
+
+          if (range.type === 'less' && value < range.value) {
+            matchesAnyRange = true;
+            break;
+          } else if (range.type === 'greater' && value > range.value) {
+            matchesAnyRange = true;
+            break;
+          } else if (range.type === 'between' && value >= range.min && value <= range.max) {
+            matchesAnyRange = true;
+            break;
+          }
+        }
+
+        if (!matchesAnyRange) return false;
+      }
+
+      return true;
+    }
+
+    function buildDynamicFilters() {
+      const container = document.getElementById('dynamicFiltersContainer');
+      container.innerHTML = '';
+
+      if (filterableColumns.length === 0) {
+        container.innerHTML = '<div class="small-note">No filterable columns detected</div>';
+        return;
+      }
+
+      filterableColumns.forEach(colName => {
+        const filterBox = document.createElement('div');
+        filterBox.className = 'collapsible-box';
+        filterBox.style.marginBottom = '8px';
+
+        const filterId = `filter-${colName.replace(/\s+/g, '-')}`;
+
+        const header = document.createElement('div');
+        header.className = 'collapsible-header';
+        header.onclick = () => toggleCollapsible(filterId);
+
+        const headerTitle = document.createElement('span');
+        headerTitle.textContent = colName;
+
+        const headerIcon = document.createElement('span');
+        headerIcon.className = 'collapse-icon collapsed';
+        headerIcon.id = `${filterId}-icon`;
+        headerIcon.textContent = '▼';
+
+        header.appendChild(headerTitle);
+        header.appendChild(headerIcon);
+        filterBox.appendChild(header);
+
+        const content = document.createElement('div');
+        content.className = 'collapsible-content collapsed';
+        content.id = `${filterId}-content`;
+
+        const filtersGrid = document.createElement('div');
+        filtersGrid.className = 'filters';
+
+        const uniqueValues = new Set();
+        csvRows.forEach(row => {
+          const value = row[colName];
+          if (value && value.trim() !== '') {
+            uniqueValues.add(value);
+          }
+        });
+
+        const DAY_ORDER = ['M', 'T', 'W', 'Th', 'F', 'Sa', 'Su'];
+        const isDayColumn = uniqueValues.size > 0 &&
+          Array.from(uniqueValues).every(v => DAY_ORDER.includes(v));
+        const sortedValues = isDayColumn
+          ? DAY_ORDER.filter(d => uniqueValues.has(d))
+          : Array.from(uniqueValues).sort();
+
+        sortedValues.forEach(value => {
+          const label = document.createElement('label');
+          label.className = 'filter-item';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.dataset.column = colName;
+          checkbox.dataset.value = value;
+
+          checkbox.addEventListener('change', e => {
+            if (e.target.checked) {
+              activeFilters[colName].add(value);
+            } else {
+              activeFilters[colName].delete(value);
+            }
+
+            const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
+            if (mode === 'distance' && distanceDataCalculated) {
+              updateDistanceTimeMetrics();
+            }
+
+            updateCsvSummary();
+            updateShading();
+          });
+
+          label.appendChild(checkbox);
+          label.appendChild(document.createTextNode(' ' + value));
+          filtersGrid.appendChild(label);
+        });
+
+        content.appendChild(filtersGrid);
+        filterBox.appendChild(content);
+        container.appendChild(filterBox);
+      });
+    }
+
+    function clearDynamicFilters() {
+      const container = document.getElementById('dynamicFiltersContainer');
+      container.innerHTML = '<div class="small-note">Upload a CSV to see available filters</div>';
+    }
+
+    document.getElementById('clearFiltersBtn').addEventListener('click', function () {
+      Object.keys(activeFilters).forEach(col => {
+        activeFilters[col].clear();
+      });
+
+      customFilters.forEach(filter => {
+        filter.activeRanges.clear();
+      });
+      saveCustomFiltersToLocalStorage();
+
+      document.querySelectorAll('#dynamicFiltersContainer input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+      });
+
+      document.querySelectorAll('#customFiltersContainer input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+      });
+
+      const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
+      if (mode === 'distance' && distanceDataCalculated) {
+        updateDistanceTimeMetrics();
+      }
+
+      updateCsvSummary();
+      updateShading();
+    });
+
+    document.getElementById('resetDataBtn').addEventListener('click', resetCsvDataOnly);
+
+    function getAggregatedCategoryData(poly) {
+      if (!poly.isCategory) return null;
+
+      const categoryRows = csvRows.filter(row => {
+        const loc = row[locationColumnName];
+        return poly.categoryLocations.includes(loc);
+      });
+
+      const filteredRows = categoryRows.filter(row => {
+        for (const colName of filterableColumns) {
+          const filterSet = activeFilters[colName];
+          if (filterSet && filterSet.size > 0) {
+            if (!filterSet.has(row[colName])) {
+              return false;
+            }
+          }
+        }
+
+        if (!applyCustomFilters(row)) {
+          return false;
+        }
+
+        return true;
+      });
+
+      return {
+        totalRows: categoryRows,
+        filteredRows: filteredRows
+      };
+    }
+
+    function computeCountsForPolygons() {
+      const counts = {};
+      polygons.forEach(p => {
+        if (p.isCategory) {
+          const data = getAggregatedCategoryData(p);
+          counts[p.name] = data ? data.filteredRows.length : 0;
+        } else {
+          counts[p.name] = 0;
+        }
+      });
+
+      if (!csvRows || csvRows.length === 0) return counts;
+
+      csvRows.forEach(r => {
+        let passesFilters = true;
+
+        for (const colName of filterableColumns) {
+          const filterSet = activeFilters[colName];
+          if (filterSet && filterSet.size > 0) {
+            if (!filterSet.has(r[colName])) {
+              passesFilters = false;
+              break;
+            }
+          }
+        }
+
+        if (!applyCustomFilters(r)) {
+          passesFilters = false;
+        }
+
+        if (passesFilters) {
+          const location = r[locationColumnName];
+          const poly = polygons.find(p => p.name === location && !p.isCategory);
+          if (poly && location in counts) counts[location] += 1;
+        }
+      });
+
+      return counts;
+    }
+
+    async function getBikingDistance(fromLat, fromLng, toLat, toLng) {
+      const modeMap = {
+        'bike': 'bike',
+        'driving': 'car',
+        'foot': 'foot'
+      };
+
+      const osrmMode = modeMap[routingMode] || 'bike';
+      const url = `https://router.project-osrm.org/route/v1/${osrmMode}/${fromLng},${fromLat};${toLng},${toLat}?overview=false`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.routes && data.routes.length > 0) {
+          return data.routes[0].distance;
+        }
+        return null;
+      } catch (error) {
+        console.error('OSRM API error:', error);
+        return null;
+      }
+    }
+
+    async function calculateDistanceTimeRatios() {
+      if (!_station || polygons.length === 0 || csvRows.length === 0) {
+        return;
+      }
+
+      const stationLat = _station.latlng.lat;
+      const stationLng = _station.latlng.lng;
+
+      if (!distanceCache[routingMode]) {
+        distanceCache[routingMode] = {};
+      }
+
+      for (const poly of polygons) {
+        if (!distanceCache[routingMode][poly.name] || distanceCache[routingMode][poly.name].distance === undefined) {
+          const [polyLat, polyLng] = poly.centroid;
+          const distanceMeters = await getBikingDistance(stationLat, stationLng, polyLat, polyLng);
+
+          const distanceMiles = distanceMeters ? distanceMeters * 0.000621371 : null;
+
+          distanceCache[routingMode][poly.name] = {
+            distance: distanceMiles,
+            avgTime: 0,
+            ratio: 0
+          };
+
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+
+      updateDistanceTimeMetrics();
+      saveDistanceCacheToLocalStorage();
+    }
+
+    function updateDistanceTimeMetrics() {
+      if (!distanceCache[routingMode]) {
+        distanceCache[routingMode] = {};
+      }
+
+      for (const poly of polygons) {
+        let incidents;
+
+        if (poly.isCategory) {
+          const data = getAggregatedCategoryData(poly);
+          incidents = data ? data.filteredRows.filter(r => r.timeElapsed) : [];
+        } else {
+          incidents = csvRows.filter(r => {
+            if (r[locationColumnName] !== poly.name) return false;
+            if (!r.timeElapsed) return false;
+
+            for (const colName of filterableColumns) {
+              const filterSet = activeFilters[colName];
+              if (filterSet && filterSet.size > 0) {
+                if (!filterSet.has(r[colName])) {
+                  return false;
+                }
+              }
+            }
+
+            if (!applyCustomFilters(r)) {
+              return false;
+            }
+
+            return true;
+          });
+        }
+
+        if (incidents.length === 0 || !distanceCache[routingMode][poly.name]) {
+          if (distanceCache[routingMode][poly.name]) {
+            distanceCache[routingMode][poly.name].avgTime = 0;
+            distanceCache[routingMode][poly.name].ratio = 0;
+          }
+          continue;
+        }
+
+        const totalTime = incidents.reduce((sum, incident) => {
+          return sum + (parseFloat(incident.timeElapsed) || 0);
+        }, 0);
+        const avgTime = totalTime / incidents.length;
+
+        const distanceMiles = distanceCache[routingMode][poly.name].distance;
+        const ratio = avgTime > 0 && distanceMiles ? distanceMiles / avgTime : 0;
+
+        distanceCache[routingMode][poly.name].avgTime = avgTime;
+        distanceCache[routingMode][poly.name].ratio = ratio;
+      }
+    }
+
+    function interpolateColor(c1, c2, t) {
+      const r1 = parseInt(c1.slice(1, 3), 16), g1 = parseInt(c1.slice(3, 5), 16), b1 = parseInt(c1.slice(5, 7), 16);
+      const r2 = parseInt(c2.slice(1, 3), 16), g2 = parseInt(c2.slice(3, 5), 16), b2 = parseInt(c2.slice(5, 7), 16);
+      const r = Math.round(r1 + (r2 - r1) * t);
+      const g = Math.round(g1 + (g2 - g1) * t);
+      const b = Math.round(b1 + (b2 - b1) * t);
+      return `rgb(${r},${g},${b})`;
+    }
+
+    function updateShading() {
+      const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
+
+      if (mode === 'distance') {
+        if (!distanceCache[routingMode]) {
+          distanceCache[routingMode] = {};
+        }
+
+        if (!distanceDataCalculated[routingMode] || Object.keys(distanceCache[routingMode]).length === 0) {
+          polygons.forEach(p => {
+            if (p.isCategory) {
+              p.layer.setStyle({ color: '#0a400c', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 3 });
+            } else {
+              p.layer.setStyle({ color: '#aaaaaa', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 2 });
+            }
+          });
+
+          if (_station && csvRows.length > 0 && polygons.length > 0) {
+            document.getElementById('distanceLoadingIndicator').style.display = 'block';
+            calculateDistanceTimeRatios().then(() => {
+              document.getElementById('distanceLoadingIndicator').style.display = 'none';
+              distanceDataCalculated[routingMode] = true;
+              updateShading();
+            });
+          }
+          return;
+        }
+
+        const allRatios = [];
+
+        Object.entries(distanceCache[routingMode]).forEach(([name, data]) => {
+          if (data.ratio > 0) {
+            allRatios.push(data.ratio);
+          }
+        });
+
+        if (allRatios.length === 0) {
+          polygons.forEach(p => {
+            if (p.isCategory) {
+              p.layer.setStyle({ color: '#0a400c', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 3 });
+            } else {
+              p.layer.setStyle({ color: '#aaaaaa', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 2 });
+            }
+          });
+          return;
+        }
+
+        const maxRatio = Math.max(...allRatios);
+        const minRatio = Math.min(...allRatios);
+
+        polygons.forEach(p => {
+          const data = distanceCache[routingMode][p.name];
+          if (!data || data.ratio === 0) {
+            if (p.isCategory) {
+              p.layer.setStyle({ color: '#0a400c', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 3 });
+            } else {
+              p.layer.setStyle({ color: '#aaaaaa', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 2 });
+            }
+            return;
+          }
+
+          let color, opacity;
+
+          const range = maxRatio - minRatio;
+          if (range > 0) {
+            const normalizedValue = (data.ratio - minRatio) / range;
+            color = interpolateColor('#ff0000', '#00ff00', normalizedValue);
+            opacity = 0.5 + (normalizedValue * 0.4);
+          } else {
+            color = '#00ff00';
+            opacity = 0.7;
+          }
+
+          if (p.isCategory) {
+            p.layer.setStyle({
+              color: '#0a400c',
+              fillColor: color,
+              fillOpacity: opacity,
+              weight: 3
+            });
+          } else {
+            p.layer.setStyle({
+              color: color,
+              fillColor: color,
+              fillOpacity: opacity,
+              weight: 2
+            });
+          }
+        });
+
+        updateCsvSummary();
+        return;
+      }
+
+      const counts = computeCountsForPolygons();
+
+      let maxCategory = 0;
+      let maxRegular = 0;
+
+      Object.entries(counts).forEach(([name, count]) => {
+        const poly = polygons.find(p => p.name === name);
+        if (poly) {
+          if (poly.isCategory) {
+            if (count > maxCategory) maxCategory = count;
+          } else {
+            if (count > maxRegular) maxRegular = count;
+          }
+        }
+      });
+
+      polygons.forEach(p => {
+        const c = counts[p.name] || 0;
+
+        if (p.isCategory) {
+          const ratio = maxCategory > 0 ? c / maxCategory : 0;
+          const boosted = Math.pow(ratio, 0.55);
+          const opacity = 0.3 + boosted * 0.6;
+          const fillColor = interpolateColor("#aaaaaa", "#0000ff", boosted);
+
+          p.layer.setStyle({
+            color: '#0a400c',
+            fillColor: fillColor,
+            fillOpacity: opacity,
+            weight: 3
+          });
+        } else {
+          const ratio = maxRegular > 0 ? c / maxRegular : 0;
+          const boosted = Math.pow(ratio, 0.55);
+          const opacity = 0.45 + boosted * 0.55;
+          const fillColor = interpolateColor("#aaaaaa", "#0000ff", boosted);
+
+          p.layer.setStyle({
+            color: fillColor,
+            fillColor: fillColor,
+            fillOpacity: opacity,
+            weight: 2
+          });
+        }
+      });
+
+      updateCsvSummary();
+    }
+
+    function updateCsvSummary() {
+      const el = document.getElementById('csvSummary');
+      const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
+
+      if (!csvRows || csvRows.length === 0) {
+        el.innerText = 'No CSV loaded';
+        return;
+      }
+
+      if (mode === 'distance' && distanceDataCalculated[routingMode] && distanceCache[routingMode]) {
+        const ratioEntries = Object.entries(distanceCache[routingMode])
+          .filter(([name, data]) => data.ratio > 0)
+          .map(([name, data]) => ({ name, ratio: data.ratio, avgTime: data.avgTime }))
+          .sort((a, b) => b.ratio - a.ratio);
+
+        if (ratioEntries.length === 0) {
+          el.innerText = 'No distance/time data available';
+          return;
+        }
+
+        if (ratioEntries.length <= 6) {
+          const lines = ratioEntries.map(e => `${e.name}: ${e.ratio.toFixed(3)} mi/min (${e.avgTime.toFixed(1)} min)`);
+          el.innerText = `Efficiency Rankings:\n${lines.join('\n')}`;
+        } else {
+          const top3 = ratioEntries.slice(0, 3);
+          const bottom3 = ratioEntries.slice(-3).reverse();
+
+          const topLines = top3.map(e => `✓ ${e.name}: ${e.ratio.toFixed(3)} mi/min (${e.avgTime.toFixed(1)} min)`);
+          const bottomLines = bottom3.map(e => `✗ ${e.name}: ${e.ratio.toFixed(3)} mi/min (${e.avgTime.toFixed(1)} min)`);
+
+          el.innerText = `Top 3 Fastest:\n${topLines.join('\n')}\n\nBottom 3 Slowest:\n${bottomLines.join('\n')}`;
+        }
+        return;
+      }
+
+      let totalActive = 0, matched = 0, unmatched = 0;
+      const namesSet = new Set(polygons.map(p => p.name));
+
+      csvRows.forEach(r => {
+        let passesFilters = true;
+
+        for (const colName of filterableColumns) {
+          const filterSet = activeFilters[colName];
+          if (filterSet && filterSet.size > 0) {
+            if (!filterSet.has(r[colName])) {
+              passesFilters = false;
+              break;
+            }
+          }
+        }
+
+        if (!applyCustomFilters(r)) {
+          passesFilters = false;
+        }
+
+        if (passesFilters) {
+          totalActive++;
+          if (namesSet.has(r[locationColumnName])) matched++;
+          else unmatched++;
+        }
+      });
+
+      const counts = computeCountsForPolygons();
+      const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      const lines = entries.slice(0, 3).map(e => `${e[0]}: ${e[1]}`);
+      const more = entries.length > 3 ? `\n+ ${entries.length - 3} more...` : '';
+
+      el.innerText = `Top Incident Locations:\n${lines.join('\n')}${more}`;
+    }
+
+    function showPolygonPopup(poly) {
+      let allMatches, filteredMatches;
+
+      if (poly.isCategory) {
+        const data = getAggregatedCategoryData(poly);
+        allMatches = data ? data.totalRows : [];
+        filteredMatches = data ? data.filteredRows : [];
+      } else {
+        allMatches = csvRows.filter(r => r[locationColumnName] === poly.name);
+
+        filteredMatches = allMatches.filter(row => {
+          for (const colName of filterableColumns) {
+            const filterSet = activeFilters[colName];
+            if (filterSet && filterSet.size > 0) {
+              if (!filterSet.has(row[colName])) {
+                return false;
+              }
+            }
+          }
+
+          if (!applyCustomFilters(row)) {
+            return false;
+          }
+
+          return true;
+        });
+      }
+
+      let popupHTML = `<div class="poly-popup">`;
+      popupHTML += `<div class="popup-title">${poly.name}${poly.isCategory ? ' (Category)' : ''}</div>`;
+
+      if (poly.isCategory) {
+        popupHTML += `<div style="font-size:12px; color:#0a400c; margin-bottom:8px; padding:6px; background:#f4ede1; border-radius:4px; border:1px solid #b1ab86;">`;
+        popupHTML += `📁 Includes: ${poly.categoryLocations.join(', ')}`;
+        popupHTML += `</div>`;
+      }
+
+      popupHTML += `<div style="font-size:14px; color:#6b7280; margin-bottom:10px;">Filtered Incidents: ${filteredMatches.length}`;
+      if (filteredMatches.length !== allMatches.length) {
+        popupHTML += ` <span style="color:#9ca3af;">(${allMatches.length} total)</span>`;
+      }
+      popupHTML += `</div>`;
+
+      const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
+      if (mode === 'distance' && distanceCache[routingMode] && distanceCache[routingMode][poly.name]) {
+        const data = distanceCache[routingMode][poly.name];
+
+        const allIncidents = allMatches.filter(r => r.timeElapsed);
+        let totalAvgTime = 0;
+        let totalRatio = 0;
+
+        if (allIncidents.length > 0) {
+          const totalTime = allIncidents.reduce((sum, incident) => {
+            return sum + (parseFloat(incident.timeElapsed) || 0);
+          }, 0);
+          totalAvgTime = totalTime / allIncidents.length;
+
+          const distanceMiles = distanceCache[routingMode][poly.name].distance;
+          if (totalAvgTime > 0 && distanceMiles) {
+            totalRatio = distanceMiles / totalAvgTime;
+          }
+        }
+
+        popupHTML += `<div style="font-size:14px; background:#f4ede1; padding:6px; border-radius:4px; margin-bottom:10px; border:1px solid #b1ab86;">`;
+
+        popupHTML += `<div style="font-weight:600; margin-bottom:4px; color:#0a400c;">Filtered Metrics:</div>`;
+        popupHTML += `<div style="margin-left:8px;"><strong>Avg Time:</strong> ${data.avgTime ? data.avgTime.toFixed(1) + ' min' : 'N/A'}</div>`;
+        popupHTML += `<div style="margin-left:8px; margin-bottom:6px;"><strong>Efficiency:</strong> ${data.ratio ? data.ratio.toFixed(3) + ' mi/min' : 'N/A'}</div>`;
+
+        if (filteredMatches.length !== allMatches.length && totalAvgTime > 0) {
+          popupHTML += `<div style="font-weight:600; margin-bottom:4px; color:#6b7280; border-top:1px solid #b1ab86; padding-top:4px;">Total (Unfiltered):</div>`;
+          popupHTML += `<div style="margin-left:8px;"><strong>Avg Time:</strong> ${totalAvgTime.toFixed(1)} min</div>`;
+          popupHTML += `<div style="margin-left:8px;"><strong>Efficiency:</strong> ${totalRatio.toFixed(3)} mi/min</div>`;
+        }
+
+        popupHTML += `</div>`;
+      }
+
+      if (filteredMatches.length === 0) {
+        popupHTML += `<div style="color:#9ca3af; font-size:12px;">No incidents match current filters</div>`;
+        popupHTML += `</div>`;
+        poly.layer.bindPopup(popupHTML, { maxWidth: 300, maxHeight: 300 }).openPopup();
+        return;
+      }
+
+      filterableColumns.forEach(colName => {
+        const valueCounts = {};
+        filteredMatches.forEach(row => {
+          const val = row[colName] || '(empty)';
+          valueCounts[val] = (valueCounts[val] || 0) + 1;
+        });
+
+        const bodyId = `popup-body-${poly.name}-${colName}`.replace(/\s+/g, '-');
+
+        popupHTML += `<div class="popup-section">`;
+        popupHTML += `<div class="popup-section-header" onclick="togglePopupSection('${bodyId}')">`;
+        popupHTML += `<span>${colName}</span>`;
+        popupHTML += `<span style="color:#6b7280;">▼</span>`;
+        popupHTML += `</div>`;
+        popupHTML += `<div class="popup-section-body" id="${bodyId}" style="display:none;">`;
+
+        Object.entries(valueCounts).sort((a, b) => b[1] - a[1]).forEach(([val, count]) => {
+          popupHTML += `<div style="padding:3px 0;">${val}: <strong>${count}</strong></div>`;
+        });
+
+        popupHTML += `</div></div>`;
+      });
+
+      const filteredListBodyId = `popup-filtered-list-${poly.name}`.replace(/\s+/g, '-');
+      popupHTML += `<div class="popup-section">`;
+      popupHTML += `<div class="popup-section-header" onclick="togglePopupSection('${filteredListBodyId}')">`;
+      popupHTML += `<span>Filtered Incidents</span>`;
+      popupHTML += `<span style="color:#6b7280;">▼</span>`;
+      popupHTML += `</div>`;
+      popupHTML += `<div class="popup-section-body" id="${filteredListBodyId}" style="display:none;">`;
+      popupHTML += `<div class="popup-table-wrapper">`;
+      popupHTML += `<table style="width:100%; font-size:11px; border-collapse:collapse;">`;
+      popupHTML += `<thead><tr>`;
+
+      csvColumns.forEach(col => {
+        popupHTML += `<th style="border-bottom:1px solid #e5e7eb; padding:4px; text-align:left; white-space:nowrap;">${col}</th>`;
+      });
+
+      popupHTML += `</tr></thead><tbody>`;
+
+      filteredMatches.forEach(row => {
+        popupHTML += `<tr>`;
+        csvColumns.forEach(col => {
+          popupHTML += `<td style="border-bottom:1px solid #f3f4f6; padding:4px; white-space:nowrap;">${row[col] || ''}</td>`;
+        });
+        popupHTML += `</tr>`;
+      });
+
+      popupHTML += `</tbody></table></div></div></div>`;
+
+      if (filteredMatches.length !== allMatches.length) {
+        const allListBodyId = `popup-all-list-${poly.name}`.replace(/\s+/g, '-');
+        popupHTML += `<div class="popup-section">`;
+        popupHTML += `<div class="popup-section-header" onclick="togglePopupSection('${allListBodyId}')">`;
+        popupHTML += `<span>All Incidents (Unfiltered)</span>`;
+        popupHTML += `<span style="color:#6b7280;">▼</span>`;
+        popupHTML += `</div>`;
+        popupHTML += `<div class="popup-section-body" id="${allListBodyId}" style="display:none;">`;
+        popupHTML += `<div class="popup-table-wrapper">`;
+        popupHTML += `<table style="width:100%; font-size:11px; border-collapse:collapse;">`;
+        popupHTML += `<thead><tr>`;
+
+        csvColumns.forEach(col => {
+          popupHTML += `<th style="border-bottom:1px solid #e5e7eb; padding:4px; text-align:left; white-space:nowrap;">${col}</th>`;
+        });
+
+        popupHTML += `</tr></thead><tbody>`;
+
+        allMatches.forEach(row => {
+          popupHTML += `<tr>`;
+          csvColumns.forEach(col => {
+            popupHTML += `<td style="border-bottom:1px solid #f3f4f6; padding:4px; white-space:nowrap;">${row[col] || ''}</td>`;
+          });
+          popupHTML += `</tr>`;
+        });
+
+        popupHTML += `</tbody></table></div></div></div>`;
+      }
+
+      popupHTML += `</div>`;
+
+      poly.layer.bindPopup(popupHTML, { maxWidth: 300, maxHeight: 300 }).openPopup();
+    }
+
+    window.togglePopupSection = function (bodyId) {
+      const body = document.getElementById(bodyId);
+      if (body) {
+        body.style.display = body.style.display === 'none' ? 'block' : 'none';
+      }
+    };
+
+    function clearDetailsPanel() {
+      document.getElementById('detailsTbody').innerHTML = '';
+      document.getElementById('detailsTableHead').querySelector('tr').innerHTML = '';
+      document.getElementById('detailsScroll').style.display = 'none';
+      document.getElementById('summaryContainer').innerHTML = '';
+      document.getElementById('summaryContainer').style.display = 'none';
+    }
+
+    document.getElementById('exportAllBtn').addEventListener('click', () => {
+      try {
+        const allSettings = {
+          version: 2,
+          polygons: polygons.map(p => ({
+            name: p.name,
+            coords: p.coords,
+            isCategory: p.isCategory || false,
+            categoryLocations: p.categoryLocations || []
+          })),
+          customFilters: customFilters.map(f => ({
+            id: f.id,
+            name: f.name,
+            column: f.column,
+            ranges: f.ranges,
+            activeRanges: Array.from(f.activeRanges)
+          })),
+          mapCenter: mapCenter,
+          station: _station ? { lat: _station.latlng.lat, lng: _station.latlng.lng } : null,
+          routingMode: routingMode
+        };
+
+        const blob = new Blob([JSON.stringify(allSettings, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ems-mapping-settings.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        alert('All settings exported successfully!');
+      } catch (err) {
+        alert('Export failed: ' + (err && err.message ? err.message : err));
+      }
+    });
+
+    document.getElementById('importAllFile').addEventListener('change', function (ev) {
+      const f = ev.target.files && ev.target.files[0];
+      if (!f) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = JSON.parse(e.target.result);
+
+          if (!data.version || data.version < 2) {
+            throw new Error('Incompatible settings file format');
+          }
+
+          polygons.forEach(p => {
+            try { if (p.layer) map.removeLayer(p.layer); } catch (_) { }
+            try { if (p.label) map.removeLayer(p.label); } catch (_) { }
+          });
+          polygons = [];
+
+          if (data.polygons && Array.isArray(data.polygons)) {
+            data.polygons.forEach(item => {
+              const color = item.isCategory ? '#0a400c' : 'blue';
+              const fillColor = item.isCategory ? 'rgba(162,123,92,0.4)' : 'rgba(0,0,255,0.4)';
+              const weight = item.isCategory ? 3 : 2;
+              const layer = L.polygon(item.coords, { color, fillColor, weight }).addTo(map);
+              const polyObj = {
+                name: item.name,
+                coords: item.coords,
+                layer,
+                isCategory: item.isCategory || false,
+                categoryLocations: item.categoryLocations || []
+              };
+              polygons.push(polyObj);
+              createLabelForPolygon(polyObj);
+
+              if (polyObj.isCategory) {
+                if (layer && map.hasLayer(layer)) {
+                  map.removeLayer(layer);
+                }
+                if (polyObj.label && map.hasLayer(polyObj.label)) {
+                  map.removeLayer(polyObj.label);
+                }
+              }
+            });
+          }
+
+          if (data.customFilters && Array.isArray(data.customFilters)) {
+            customFilters = data.customFilters.map(f => ({
+              id: f.id,
+              name: f.name,
+              column: f.column,
+              ranges: f.ranges,
+              activeRanges: new Set(f.activeRanges || [])
+            }));
+          }
+
+          if (data.mapCenter) {
+            mapCenter = data.mapCenter;
+            map.setView([mapCenter.lat, mapCenter.lng], mapCenter.zoom);
+            try {
+              localStorage.setItem(LS_MAP_CENTER, JSON.stringify(mapCenter));
+            } catch (e) { }
+          }
+
+          if (data.station && data.station.lat && data.station.lng) {
+            if (_station && _station.marker) map.removeLayer(_station.marker);
+
+            const latlng = L.latLng(data.station.lat, data.station.lng);
+            const marker = L.marker(latlng, { draggable: true }).addTo(map);
+            marker.bindPopup('Station');
+
+            marker.on('dragend', () => {
+              _station.latlng = marker.getLatLng();
+              updateStationDisplay();
+              saveStationToLocalStorage();
+              distanceDataCalculated = false;
+              distanceCache = {};
+              saveDistanceCacheToLocalStorage();
+            });
+
+            marker.on('contextmenu', () => {
+              map.removeLayer(marker);
+              _station = null;
+              updateStationDisplay();
+              saveStationToLocalStorage();
+              distanceDataCalculated = false;
+              distanceCache = {};
+              saveDistanceCacheToLocalStorage();
+              updateShading();
+            });
+
+            _station = { marker, latlng };
+            updateStationDisplay();
+            saveStationToLocalStorage();
+          }
+
+          if (data.routingMode) {
+            routingMode = data.routingMode;
+            document.querySelectorAll('.routing-mode-btn').forEach(btn => {
+              btn.classList.toggle('active', btn.dataset.mode === routingMode);
+            });
+            try {
+              localStorage.setItem(LS_ROUTING_MODE, routingMode);
+            } catch (e) { }
+          }
+
+          savePolygonsToLocalStorage();
+          saveCustomFiltersToLocalStorage();
+          updatePolygonList();
+          updateCategoryLabelToggleVisibility();
+          updateLegendDisplay();
+          renderCustomFilters();
+          updateMapCenterDisplay();
+
+          distanceDataCalculated = false;
+          distanceCache = {};
+          saveDistanceCacheToLocalStorage();
+
+          updateShading();
+          clearDetailsPanel();
+
+          alert('All settings imported successfully!');
+        } catch (err) {
+          alert('Import failed: ' + (err && err.message ? err.message : err));
+        }
+      };
+      reader.readAsText(f);
+      ev.target.value = '';
+    });
+
+    function exportPolygonsToFile() {
+      try {
+        const payload = polygons.map(p => ({
+          name: p.name,
+          coords: p.coords,
+          isCategory: p.isCategory || false,
+          categoryLocations: p.categoryLocations || []
+        }));
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'mapping_area_designations.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        alert('Export failed: ' + (err && err.message ? err.message : err));
+      }
+    }
+
+    function importPolygonsFromFile(file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!Array.isArray(data)) throw new Error('Invalid format');
+
+          polygons.forEach(p => {
+            try { if (p.layer) map.removeLayer(p.layer); } catch (_) { }
+            try { if (p.label) map.removeLayer(p.label); } catch (_) { }
+          });
+          polygons = [];
+
+          data.forEach(item => {
+            const color = item.isCategory ? '#0a400c' : 'blue';
+            const fillColor = item.isCategory ? 'rgba(162,123,92,0.4)' : 'rgba(0,0,255,0.4)';
+            const weight = item.isCategory ? 3 : 2;
+            const layer = L.polygon(item.coords, { color, fillColor, weight }).addTo(map);
+            const polyObj = {
+              name: item.name,
+              coords: item.coords,
+              layer,
+              isCategory: item.isCategory || false,
+              categoryLocations: item.categoryLocations || []
+            };
+            polygons.push(polyObj);
+            createLabelForPolygon(polyObj);
+
+            if (polyObj.isCategory) {
+              if (layer && map.hasLayer(layer)) {
+                map.removeLayer(layer);
+              }
+              if (polyObj.label && map.hasLayer(polyObj.label)) {
+                map.removeLayer(polyObj.label);
+              }
+            }
+          });
+
+          savePolygonsToLocalStorage();
+          updatePolygonList();
+          updateCategoryLabelToggleVisibility();
+          updateLegendDisplay();
+
+          distanceDataCalculated = {};
+          distanceCache = {};
+          saveDistanceCacheToLocalStorage();
+
+          updateShading();
+          clearDetailsPanel();
+        } catch (err) {
+          alert('Import failed: ' + (err && err.message ? err.message : err));
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    document.getElementById('exportPolygonsBtn').addEventListener('click', exportPolygonsToFile);
+    document.getElementById('importPolygonsFile').addEventListener('change', function (ev) {
+      const f = ev.target.files && ev.target.files[0];
+      if (!f) return;
+      importPolygonsFromFile(f);
+      ev.target.value = '';
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+    loadCsvFromLocalStorage();
+    loadPolygonsFromLocalStorage();
+    loadStationFromLocalStorage();
+    loadDistanceCacheFromLocalStorage();
+    loadCustomFiltersFromLocalStorage();
+    updateCategoryLabelToggleVisibility();
+    updateLegendDisplay();
+    updateShading();
+    clearDetailsPanel();
+    updateMapCenterDisplay();
+
+    window._polyApp = { polygons, csvRows, customFilters, updateShading, resetAll, resetCsvDataOnly, distanceCache };
+  </script>
+</body>
+
+</html>
