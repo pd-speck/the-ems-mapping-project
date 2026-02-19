@@ -4,10 +4,13 @@
 <head>
   <meta charset="utf-8" />
   <title>The EMS Mapping Project - Enhanced</title>
+  <!-- Leaflet CSS interactive map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <!-- Leaflet JS interactive map -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
+    /* CSS used throughout the UI */
     :root {
       --sidebar-w: 350px;
       --muted: #666;
@@ -19,6 +22,7 @@
       --header-bg: #ffffff;
     }
 
+    /* Sidebar & Page Layout */
     html,
     body {
       height: 100%;
@@ -50,6 +54,7 @@
       height: 100vh;
     }
 
+    /* Sidebar Header */
     .sidebar-header {
       padding: 12px;
       background: var(--header-bg);
@@ -63,6 +68,7 @@
       margin: 0 auto;
     }
 
+    /* Tab-based navigation between Settings and Analysis Views */
     .tab-navigation {
       display: flex;
       background: var(--dark-bg);
@@ -152,10 +158,11 @@
       font-size: 12px;
     }
 
+    /* Filter Checkboxes */
     .filters {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
       margin-top: 8px;
     }
 
@@ -167,8 +174,10 @@
       user-select: none;
       font-size: 13px;
       color: var(--dark-bg);
+      padding: 3px 0;
     }
 
+    /* Map Legend Color Gradient */
     .legend {
       margin-top: 12px;
       padding: 10px;
@@ -184,6 +193,7 @@
       margin-top: 6px;
     }
 
+    /* Summary at the bottom */
     .counts {
       margin-top: 8px;
       font-size: 13px;
@@ -191,6 +201,7 @@
       white-space: pre-wrap;
     }
 
+    /* Area/Category Polygon Details */
     .polygon-details {
       margin-top: 12px;
       border-top: 1px dashed #e6e9ee;
@@ -267,6 +278,7 @@
       color: var(--muted);
     }
 
+    /* Map Area label */
     .poly-label {
       background: rgba(255, 255, 255, 0.95);
       padding: 4px 8px;
@@ -278,6 +290,7 @@
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
+    /* Category labels */
     .category-label {
       background: var(--accent);
       padding: 4px 8px;
@@ -346,6 +359,7 @@
       background: #fff;
     }
 
+    /* Filter Section Box */
     .filter-section {
       margin-top: 12px;
       padding: 10px;
@@ -368,6 +382,7 @@
       margin-top: 8px;
     }
 
+    /* Collapsible Boxes for Organization :) */
     .collapsible-box {
       border: 2px solid var(--secondary-bg);
       border-radius: 8px;
@@ -459,6 +474,7 @@
       font-size: 13px;
     }
 
+    /* Category Mode Indicator */
     .category-mode-banner {
       background: #f4ede1;
       border: 2px solid var(--accent);
@@ -477,6 +493,7 @@
       margin-top: 4px;
     }
 
+    /* Custom Filters */
     .custom-filter-item {
       background: #f4ede1;
       border: 2px solid var(--accent);
@@ -517,6 +534,7 @@
       margin-left: 8px;
     }
 
+    /* Routing Mode Selector */
     .routing-mode-selector {
       display: flex;
       gap: 8px;
@@ -574,6 +592,18 @@
       border-color: var(--secondary-bg) !important;
     }
 
+    .danger-btn {
+      background: #fee2e2 !important;
+      color: #991b1b !important;
+      border-color: #fca5a5 !important;
+    }
+
+    .danger-btn:hover {
+      background: #fca5a5 !important;
+      color: #7f1d1d !important;
+      border-color: #f87171 !important;
+    }
+
     hr {
       border: none;
       border-top: 1px solid var(--secondary-bg);
@@ -581,60 +611,243 @@
       opacity: 0.3;
     }
 
-    /* Marker styling to show it's draggable */
     .leaflet-interactive {
       cursor: move !important;
+    }
+
+    .filter-scroll-container {
+      max-height: 180px;
+      overflow-y: auto;
+      padding: 4px 0;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      background: #fafafa;
+      margin-top: 4px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-box {
+      background: white;
+      border-radius: 10px;
+      border: 2px solid var(--accent);
+      padding: 20px;
+      width: 420px;
+      max-width: 95vw;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--dark-bg);
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .modal-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--dark-bg);
+      margin-top: 12px;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid var(--secondary-bg);
+      border-radius: 5px;
+      font-size: 13px;
+      box-sizing: border-box;
+      color: var(--dark-bg);
+    }
+
+    .modal-select {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid var(--secondary-bg);
+      border-radius: 5px;
+      font-size: 13px;
+      box-sizing: border-box;
+      color: var(--dark-bg);
+      background: white;
+    }
+
+    .modal-type-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .modal-type-btn {
+      flex: 1;
+      padding: 8px;
+      border: 2px solid var(--secondary-bg);
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--dark-bg);
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .modal-type-btn.selected {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .bucket-section {
+      margin-top: 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .bucket-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: var(--primary-bg);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--dark-bg);
+    }
+
+    .bucket-body {
+      padding: 8px 10px;
+      background: white;
+    }
+
+    .bucket-value-list {
+      max-height: 120px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      padding: 4px;
+      background: #fafafa;
+      margin-top: 6px;
+    }
+
+    .modal-btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 9px;
+      border-radius: 6px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .modal-btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .modal-btn-primary:hover {
+      background: #8d6749;
+    }
+
+    .modal-btn-cancel {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+
+    .modal-btn-cancel:hover {
+      background: #e5e7eb;
+    }
+
+    .modal-note {
+      font-size: 11px;
+      color: var(--muted);
+      font-style: italic;
+      margin-top: 4px;
     }
   </style>
 </head>
 
 <body>
+  <!-- Sidebar Design -->
   <div id="sidebar">
+
+    <!-- Sidebar logo and help link -->
     <div class="sidebar-header" style="background:#b1ab8610">
       <img src="ems-mapping-project.png" alt="EMS Mapping Project" onerror="this.style.display='none'">
-      <a href="https://docs.google.com/document/d/1cvXoWQDoAJVs-UGxqcpgOtrT4QPp14SJ5iqizvNeozk/edit?usp=sharing" style="align:center">Help and How Tos</a>
+      <!-- GUIDEBOOK LINK points to guidebook.pdf in the same github folder as index.html. NOT ACTIVE YET -->
+      <a href="guidebook.pdf"
+         target="_blank"
+         rel="noopener noreferrer"
+         style="display:block; text-align:center; margin-top:6px; color:var(--dark-bg); font-weight:600; text-decoration:underline;">
+        📖 Open Guidebook
+      </a>
     </div>
 
-    <!-- Category Mode Banner -->
+    <!-- Category Mode Banner, only visible when category mode is toggled on -->
     <div id="categoryModeBanner" class="category-mode-banner" style="display:none; margin: 12px;">
       ‼️ CATEGORY MODE ACTIVE
     </div>
 
-    <!-- Tab Navigation -->
+    <!-- Tab Navigation: switches between Settings and Analysis panels -->
     <div class="tab-navigation">
       <button class="tab-button active" onclick="switchTab('settings')" style="color:#fefae0;">⚙️ Settings</button>
       <button class="tab-button" onclick="switchTab('analysis')" style="color:#fefae0">📊 Analysis</button>
     </div>
 
-    <!-- Settings Tab -->
+    <!-- SETTINGS -->
     <div id="settingsTab" class="tab-content active">
+
+      <!-- MAP CENTER -->
       <div class="collapsible-box">
-        <div class="collapsible-header " onclick="toggleCollapsible('mapCenter')">
+        <div class="collapsible-header" onclick="toggleCollapsible('mapCenter')">
           <span>📍 Map Center</span>
-          <span class="collapse-icon" id="mapCenter-icon">▼</span>
+          <span class="collapse-icon collapsed" id="mapCenter-icon">▼</span>
         </div>
-        <div class="collapsible-content" id="mapCenter-content" style="background: #b1ab8652;">
+        <div class="collapsible-content collapsed" id="mapCenter-content" style="background: #b1ab8652;">
           <button id="setMapCenterBtn" class="primary-btn">Set Map Center</button>
           <div class="controls-row">
             <button id="setCurrentAsDefaultBtn" class="secondary-btn">Set Current as Default</button>
             <button id="resetMapCenterBtn" class="secondary-btn">Go to Default</button>
           </div>
-          <div id="mapCenterCoords" class="small-note" style="margin-top:6px;">Default: Lat 32.985, Lng -96.75, Zoom 16
-          </div>
+          <div id="mapCenterCoords" class="small-note" style="margin-top:6px;">Default: Lat 32.985, Lng -96.75, Zoom 16</div>
         </div>
       </div>
 
+      <!-- STATION & ROUTING -->
       <div class="collapsible-box">
         <div class="collapsible-header" onclick="toggleCollapsible('station')">
           <span>🚨 Station & Routing</span>
-          <span class="collapse-icon" id="station-icon">▼</span>
+          <span class="collapse-icon collapsed" id="station-icon">▼</span>
         </div>
-        <div class="collapsible-content" id="station-content" style="background: #b1ab8652;">
+        <div class="collapsible-content collapsed" id="station-content" style="background: #b1ab8652;">
           <button id="setStationBtn" class="primary-btn">Set Station Location</button>
-          <div id="stationCoords" class="small-note" style="margin-top:6px;">Station not set (required for Distance/Time
-            Map)</div>
+          <div id="stationCoords" class="small-note" style="margin-top:6px;">Station not set (required for Distance/Time Map)</div>
 
           <div class="subsection-title" style="margin-top:12px;">Routing Mode 🚑💨</div>
+          <!-- Bike vs Driving buttons for the OSRM route calculation -->
           <div class="routing-mode-selector">
             <button class="routing-mode-btn active" data-mode="bike">Bike/Golf Cart/Walk</button>
             <button class="routing-mode-btn" data-mode="driving">Drive</button>
@@ -642,12 +855,13 @@
         </div>
       </div>
 
+      <!-- INCIDENT DATA -->
       <div class="collapsible-box">
         <div class="collapsible-header" onclick="toggleCollapsible('incidents')">
           <span>📊 Incident Data</span>
-          <span class="collapse-icon" id="incidents-icon">▼</span>
+          <span class="collapse-icon collapsed" id="incidents-icon">▼</span>
         </div>
-        <div class="collapsible-content" id="incidents-content" style="background: #b1ab8652;">
+        <div class="collapsible-content collapsed" id="incidents-content" style="background: #b1ab8652;">
           <input id="csvFile" type="file" accept=".csv,text/csv" />
           <div class="small-note" style="margin-top:6px; font-style: italic;">Upload a .CSV file. Include a column
             titled 'location' for location matching. Include "timeElapsed" column for Distance/Time analysis.</div>
@@ -655,29 +869,34 @@
         </div>
       </div>
 
-      
+      <!-- CUSTOM FILTERS -->
       <div class="collapsible-box" style="margin-top:10px">
         <div class="collapsible-header" onclick="toggleCollapsible('customFilters')">
           <span>⚡ Custom Filters</span>
-          <span class="collapse-icon" id="customFilters-icon">▼</span>
+          <span class="collapse-icon collapsed" id="customFilters-icon">▼</span>
         </div>
-        <div class="collapsible-content" id="customFilters-content" style="background: #b1ab8652;">
+        <div class="collapsible-content collapsed" id="customFilters-content" style="background: #b1ab8652;">
           <button id="createCustomFilterBtn" class="primary-btn">+ Create Custom Filter</button>
           <div id="customFiltersContainer"></div>
         </div>
       </div>
-      
+
+      <!-- AREA SELECTION -->
       <div class="collapsible-box">
         <div class="collapsible-header" onclick="toggleCollapsible('areas')">
           <span>📐 Area Selection</span>
-          <span class="collapse-icon" id="areas-icon">▼</span>
+          <span class="collapse-icon collapsed" id="areas-icon">▼</span>
         </div>
-        <div class="collapsible-content" id="areas-content" style="background: #b1ab8652;">
+        <div class="collapsible-content collapsed" id="areas-content" style="background: #b1ab8652;">
           <div class="controls-row">
+            <!-- Start drawing a new polygon -->
             <button id="startBtn" class="primary-btn">Start New Area</button>
+            <!-- Finish drawing and name the polygon -->
             <button id="finishBtn" disabled class="primary-btn">Finish</button>
           </div>
           <button id="exportPolygonsBtn" class="secondary-btn">Export Areas</button>
+          <!-- NEW: Clear all areas (non-category polygons) -->
+          <button id="clearAreasBtn" class="danger-btn">🗑️ Clear All Areas</button>
           <div class="undo-hint">💡 Tip: Press Ctrl+Z to undo last point | Right-click a point to delete it</div>
 
           <div class="subsection-title">Upload Areas</div>
@@ -686,18 +905,21 @@
         </div>
       </div>
 
+      <!-- CATEGORIESS -->
       <div class="collapsible-box">
         <div class="collapsible-header" onclick="toggleCollapsible('categories')">
           <span>📁 Categories</span>
-          <span class="collapse-icon" id="categories-icon">▼</span>
+          <span class="collapse-icon collapsed" id="categories-icon">▼</span>
         </div>
-        <div class="collapsible-content" id="categories-content" style="background: #b1ab8652;">
+        <div class="collapsible-content collapsed" id="categories-content" style="background: #b1ab8652;">
+          <!-- Toggle to enable/disable category mode -->
           <label class="filter-item" style="margin-bottom:8px; font-weight: 600;">
             <input type="checkbox" id="categoryModeToggle" /> Enable Category Mode
           </label>
           <div id="categoryModeControls" style="display:none;">
             <button id="startCategoryBtn" class="primary-btn">Start New Category</button>
             <button id="finishCategoryBtn" disabled class="primary-btn">Finish Category</button>
+            <button id="clearCategoriesBtn" class="danger-btn">🗑️ Clear All Categories</button>
             <div class="undo-hint">💡 Tip: Press Ctrl+Z to undo last point | Right-click a point to delete it</div>
             <div id="locationSelectionContainer" style="display:none; margin-top:10px;">
               <div style="font-weight:600; margin-bottom:6px;">Select Locations for Category:</div>
@@ -709,31 +931,35 @@
         </div>
       </div>
 
+      <!-- IMPORT/EXPORT SETTINGS -->
       <div class="collapsible-box">
         <div class="collapsible-header" onclick="toggleCollapsible('importExport')">
           <span>📦 Import/Export</span>
-          <span class="collapse-icon" id="importExport-icon">▼</span>
+          <span class="collapse-icon collapsed" id="importExport-icon">▼</span>
         </div>
-        <div class="collapsible-content" id="importExport-content" style="background: #b1ab8652;">
+        <div class="collapsible-content collapsed" id="importExport-content" style="background: #b1ab8652;">
           <button id="exportAllBtn" class="primary-btn">Export All Settings</button>
           <input id="importAllFile" type="file" accept=".json" style="margin-top:8px;" />
-          <div class="small-note" style="margin-top:6px; font-style: italic;">Import a complete settings file to restore
-            all areas, categories, and filters.</div>
+          <div class="small-note" style="margin-top:6px; font-style: italic;">Import a complete settings file to restore all areas, categories, and filters.</div>
         </div>
       </div>
 
+      <!-- Total Reset Btn -->
       <button id="resetBtn" class="primary-btn" style="margin-top:12px;"><strong>⚠️ Reset All</strong></button>
-      <div id="polygonList" class="counts muted" style="margin-top:6px; text-align:center; font-weight:500;">0 Saved
-        Area(s)</div>
+      <!-- Area/category total count display -->
+      <div id="polygonList" class="counts muted" style="margin-top:6px; text-align:center; font-weight:500;">0 Saved Area(s)</div>
     </div>
 
+    <!-- ANALYSIS TAB -->
     <div id="analysisTab" class="tab-content">
+
+      <!-- Toggle Labels -->
       <div class="collapsible-box">
         <div class="collapsible-header" onclick="toggleCollapsible('viewOptions')">
           <span>🎥 View Options</span>
-          <span class="collapse-icon" id="viewOptions-icon">▼</span>
+          <span class="collapse-icon collapsed" id="viewOptions-icon">▼</span>
         </div>
-        <div class="collapsible-content" id="viewOptions-content" style="background: #b1ab8652;">
+        <div class="collapsible-content collapsed" id="viewOptions-content" style="background: #b1ab8652;">
           <label class="filter-item" style="margin-bottom:8px; font-weight: 600;">
             <input type="checkbox" id="toggleLabels" checked /> Show Area Labels
           </label>
@@ -744,47 +970,48 @@
         </div>
       </div>
 
+      <!-- Mode for the heatnap -->
       <div class="collapsible-box">
         <div class="collapsible-header" onclick="toggleCollapsible('heatmap')">
           <span>🗺️ Heatmap Mode</span>
-          <span class="collapse-icon" id="heatmap-icon">▼</span>
+          <span class="collapse-icon collapsed" id="heatmap-icon">▼</span>
         </div>
-        <div class="collapsible-content" id="heatmap-content" style="background: #b1ab8652;">
+        <div class="collapsible-content collapsed" id="heatmap-content" style="background: #b1ab8652;">
           <label class="filter-item" style="display:block; margin-bottom:8px;">
             <input type="radio" name="heatmapMode" value="incidents" checked /> Incident Count
           </label>
           <label class="filter-item" style="display:block;">
             <input type="radio" name="heatmapMode" value="distance" /> Distance/Time Map
           </label>
-          <div id="distanceLoadingIndicator" class="loading-indicator" style="display:none;">Calculating distances...
-          </div>
+          <div id="distanceLoadingIndicator" class="loading-indicator" style="display:none;">Calculating distances...</div>
         </div>
       </div>
 
+      <!-- Color scale legend -->
       <div class="legend">
         <div style="font-weight:600; color: var(--dark-bg);">Legend</div>
         <div class="legend-bar" id="legendBar"
           style="background: linear-gradient(90deg, rgba(170, 170, 170, 0.4), rgba(0,0,255,0.9));"></div>
         <div class="small-note" id="legendText">Gray = fewer incidents; Blue = greater incidents</div>
-        <div class="small-note" id="legendTextCategory" style="display:none; margin-top:4px;">Categories: Gray = fewer;
-          Blue = greater</div>
+        <div class="small-note" id="legendTextCategory" style="display:none; margin-top:4px;">Categories: Gray = fewer; Blue = greater</div>
       </div>
 
+      <!-- Data filters -->
       <div class="collapsible-box" style="margin-top:10px">
         <div class="collapsible-header" onclick="toggleCollapsible('dataFilters')">
           <span>🔍 Data Filters</span>
-          <span class="collapse-icon" id="dataFilters-icon">▼</span>
+          <span class="collapse-icon collapsed" id="dataFilters-icon">▼</span>
         </div>
-        <div class="collapsible-content" id="dataFilters-content">
+        <div class="collapsible-content collapsed" id="dataFilters-content" style="max-height:400px; overflow-y:auto;">
           <div id="dynamicFiltersContainer">
             <div class="small-note">Upload a CSV to see available filters</div>
           </div>
         </div>
       </div>
 
-      <button id="clearFiltersBtn" class="secondary-btn" style="margin-top:12px;"><strong>Clear All
-          Filters</strong></button>
+      <button id="clearFiltersBtn" class="secondary-btn" style="margin-top:12px;"><strong>Clear All Filters</strong></button>
 
+      <!-- Summary stats -->
       <div class="filter-section" style="margin-top:16px;">
         <div class="section-title" style="margin-top:0;">Summary</div>
         <div id="csvSummary" class="counts muted">No CSV loaded</div>
@@ -792,6 +1019,7 @@
 
       <div id="summaryContainer" class="summary-block" style="display:none;"></div>
 
+      <!-- Scrollable details when an area/category is clicked -->
       <div class="details-scroll" id="detailsScroll" style="display:none;">
         <table class="details-table" id="detailsTable">
           <thead id="detailsTableHead">
@@ -805,121 +1033,198 @@
 
   <div id="map"></div>
 
+  <!-- :D -->
   <div class="map-overlay-text" style="text-align: center;">
-    Created by Priya Darbha and Roshan Ahmed. University of Texas at Dallas - University Emergency Medical Response, c.
-    2026
+    Created by Priya Darbha, Roshan Ahmed, and Divya Arivalagan. University of Texas at Dallas - University Emergency Medical Response, c. 2026
+  </div>
+
+  <!-- CUSTOM FILTERS MODAL, fixed text custom group generation -->
+  <div id="customFilterModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+      <div class="modal-title">➕ Create Custom Filter</div>
+
+      <label class="modal-label">Column</label>
+      <select id="modalColumnSelect" class="modal-select"></select>
+
+      <label class="modal-label">Filter Name</label>
+      <input type="text" id="modalFilterName" class="modal-input" placeholder="e.g., Age Groups, Priority Level" />
+
+      <label class="modal-label">Filter Type</label>
+      <div class="modal-type-row">
+        <div class="modal-type-btn selected" id="modalTypeNumeric" onclick="selectModalType('numeric')">📊 Numeric Ranges</div>
+        <div class="modal-type-btn" id="modalTypeCategorical" onclick="selectModalType('categorical')">🏷️ Categorical Groups</div>
+      </div>
+
+      <!-- Num range panel -->
+      <div id="modalNumericSection">
+        <label class="modal-label">Define Ranges</label>
+        <p class="modal-note">Separate ranges with semicolons. Use: &lt;VALUE, &gt;VALUE, or MIN-MAX</p>
+        <p class="modal-note">Example: &lt;2;2-4.5;&gt;4.5 or 0-10;10-20;&gt;20</p>
+        <input type="text" id="modalNumericRanges" class="modal-input" placeholder="<2;2-4.5;>4.5" />
+      </div>
+
+      <!-- Categorical panel -->
+      <div id="modalCategoricalSection" style="display:none;">
+        <label class="modal-label">Available Values</label>
+        <p class="modal-note">Check values to add them to the current group, then click "Add Group".</p>
+        <div id="modalValueCheckboxes" class="bucket-value-list"></div>
+
+        <label class="modal-label" style="margin-top:8px;">Group Name</label>
+        <input type="text" id="modalGroupName" class="modal-input" placeholder="e.g., High Priority" />
+        <button class="modal-btn modal-btn-primary" style="margin-top:6px; width:auto; padding:6px 14px;" onclick="addCategoricalGroup()">+ Add Group</button>
+
+        <div id="modalGroupList" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="modal-btn-row">
+        <button class="modal-btn modal-btn-cancel" onclick="closeCustomFilterModal()">Cancel</button>
+        <button class="modal-btn modal-btn-primary" onclick="saveCustomFilter()">Save Filter</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    // Tab switching function
+    // Functionality
+
+    /*Switch Tabs*/
     function switchTab(tabName) {
-      // Hide all tabs
-      document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-      });
-
-      // Remove active class from all buttons
-      document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('active');
-      });
-
-      // Show selected tab
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
       document.getElementById(tabName + 'Tab').classList.add('active');
-
-      // Add active class to clicked button
       event.target.classList.add('active');
     }
 
+    /* Toggles the open/closed state of a collapsible box. */
     function toggleCollapsible(sectionId) {
       const content = document.getElementById(sectionId + '-content');
-      const icon = document.getElementById(sectionId + '-icon');
-
-      if (content.classList.contains('collapsed')) {
-        content.classList.remove('collapsed');
-        icon.classList.remove('collapsed');
-      } else {
-        content.classList.add('collapsed');
-        icon.classList.add('collapsed');
-      }
+      const icon    = document.getElementById(sectionId + '-icon');
+      content.classList.toggle('collapsed');
+      icon.classList.toggle('collapsed');
     }
 
-    const DEFAULT_MAP_CENTER = { lat: 32.985962, lng: -96.750402, zoom: 16 };
-    const LS_MAP_CENTER = 'map_center_v1';
-    const LS_POLYGONS = 'polygons_v5';
-    const LS_CSV = 'polygons_csv_rows_v5';
-    const LS_STATION = 'station_location_v1';
-    const LS_DISTANCE_CACHE = 'distance_cache_v2';
-    const LS_ROUTING_MODE = 'routing_mode_v1';
-    const LS_CUSTOM_FILTERS = 'custom_filters_v1';
+    // Constant Vars.
 
+    // Default map view @ UTD
+    const DEFAULT_MAP_CENTER = { lat: 32.985962, lng: -96.750402, zoom: 16 };
+
+    // localStorage keys, swap polygons back to v5!!!
+    const LS_MAP_CENTER      = 'map_center_v1';
+    const LS_POLYGONS        = 'polygons_v5';
+    const LS_CSV             = 'polygons_csv_rows_v5';
+    const LS_STATION         = 'station_location_v1';
+    const LS_DISTANCE_CACHE  = 'distance_cache_v2';
+    const LS_ROUTING_MODE    = 'routing_mode_v1';
+    const LS_CUSTOM_FILTERS  = 'custom_filters_v1';
+
+    // Load a saevd map center
     let mapCenter = DEFAULT_MAP_CENTER;
     try {
       const saved = localStorage.getItem(LS_MAP_CENTER);
-      if (saved) {
-        mapCenter = JSON.parse(saved);
-      }
-    } catch (e) { }
+      if (saved) mapCenter = JSON.parse(saved);
+    } catch (e) {}
 
     const map = L.map('map').setView([mapCenter.lat, mapCenter.lng], mapCenter.zoom);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
+    // Drawing Polygosn
     let drawing = false;
     let polygonPoints = [];
     let tempPolygon = null;
     let tempMarkers = [];
-    let polygons = [];
-    let csvRows = [];
-    let _station = null;
 
-    let csvColumns = [];
-    let locationColumnName = '';
-    let filterableColumns = [];
+    // Saved Data
+    let polygons = [];      
+    let csvRows = [];      
+    let _station = null;    
+
+    // Filtration
+    let csvColumns = []; 
+    let locationColumnName = ''; 
+    let filterableColumns = [];  
     let activeFilters = {};
     let customFilters = [];
 
+    // Categories
     let categoryMode = false;
     let selectedLocations = new Set();
 
-    let distanceDataCalculated = {};
-    let distanceCache = {};
-    let routingMode = 'bike';
+    // Efficiancy Analysis
+    let distanceDataCalculated = {};  
+    let distanceCache = {};  
+    let routingMode = 'bike';  
 
+    // stop making a click register immediately after moving a polygon boundary point.
     let justFinishedDragging = false;
 
-    // Load routing mode from localStorage
+    // Custom Filters Modal
+    let modalFilterType = 'numeric'; 
+    let modalCategoricalGroups = [];
+
+    // Restore routing mode from localStorage
     try {
       const savedMode = localStorage.getItem(LS_ROUTING_MODE);
       if (savedMode) routingMode = savedMode;
-    } catch (e) { }
+    } catch (e) {}
 
-    // Routing mode selector
+
+
+
+    //ROUTING MODE SELECTOR
     document.querySelectorAll('.routing-mode-btn').forEach(btn => {
       btn.addEventListener('click', function () {
         document.querySelectorAll('.routing-mode-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
         routingMode = this.dataset.mode;
-
-        try {
-          localStorage.setItem(LS_ROUTING_MODE, routingMode);
-        } catch (e) { }
+        try { localStorage.setItem(LS_ROUTING_MODE, routingMode); } catch (e) {}
 
         const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
-        if (mode === 'distance' && _station && polygons.length > 0) {
-          updateShading();
-        }
+        if (mode === 'distance' && _station && polygons.length > 0) updateShading();
       });
 
-      if (btn.dataset.mode === routingMode) {
-        btn.classList.add('active');
-      }
+      if (btn.dataset.mode === routingMode) btn.classList.add('active');
     });
 
     document.addEventListener('keydown', function (e) {
+      // Ctrl+Z / Cmd+Z: undo the last placed point while drawing
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && drawing && polygonPoints.length > 0) {
         e.preventDefault();
         undoLastPoint();
       }
+
+      // Esc: cancel the current drawing session
+      if (e.key === 'Escape' && drawing) {
+        e.preventDefault();
+        cancelDrawing();
+      }
     });
+
+    /* Cancel Drawing */
+    function cancelDrawing() {
+      if (!drawing) return;
+      drawing = false;
+
+      if (tempPolygon) { map.removeLayer(tempPolygon); tempPolygon = null; }
+      tempMarkers.forEach(m => {
+        map.removeLayer(m);
+        if (m._handleMove) map.off('mousemove', m._handleMove);
+        if (m._handleUp)   map.off('mouseup',   m._handleUp);
+        if (m._handleOut)  map.off('mouseout',  m._handleOut);
+      });
+      tempMarkers   = [];
+      polygonPoints = [];
+
+      if (categoryMode) {
+        // Reset category drawing buttons
+        document.getElementById('startCategoryBtn').disabled  = false;
+        document.getElementById('finishCategoryBtn').disabled = true;
+        document.getElementById('locationSelectionContainer').style.display = 'none';
+        selectedLocations.clear();
+      } else {
+        // Reset area drawing buttons
+        document.getElementById('startBtn').disabled  = false;
+        document.getElementById('finishBtn').disabled = true;
+      }
+    }
 
     function undoLastPoint() {
       if (!drawing || polygonPoints.length === 0) return;
@@ -929,62 +1234,57 @@
       const lastMarker = tempMarkers.pop();
       if (lastMarker) {
         map.removeLayer(lastMarker);
+        // Detach event listeners for the marker
         if (lastMarker._handleMove) map.off('mousemove', lastMarker._handleMove);
-        if (lastMarker._handleUp) map.off('mouseup', lastMarker._handleUp);
-        if (lastMarker._handleOut) map.off('mouseout', lastMarker._handleOut);
+        if (lastMarker._handleUp)   map.off('mouseup', lastMarker._handleUp);
+        if (lastMarker._handleOut)  map.off('mouseout', lastMarker._handleOut);
       }
 
-      tempMarkers.forEach((m, i) => {
-        m._pointIndex = i;
-      });
+      tempMarkers.forEach((m, i) => { m._pointIndex = i; });
 
       updateTempPolygon();
-    }
+      }
 
+    // Save STation lat/lng to localStorage
     function saveStationToLocalStorage() {
       try {
         if (_station && _station.latlng) {
-          localStorage.setItem(LS_STATION, JSON.stringify({
-            lat: _station.latlng.lat,
-            lng: _station.latlng.lng
-          }));
+          localStorage.setItem(LS_STATION, JSON.stringify({ lat: _station.latlng.lat, lng: _station.latlng.lng }));
         } else {
           localStorage.removeItem(LS_STATION);
         }
-      } catch (e) { }
+      } catch (e) {}
     }
 
+    /** Save distance results to LS */
     function saveDistanceCacheToLocalStorage() {
       try {
         if (Object.keys(distanceCache).length > 0) {
-          localStorage.setItem(LS_DISTANCE_CACHE, JSON.stringify({
-            cache: distanceCache,
-            calculated: distanceDataCalculated
-          }));
+          localStorage.setItem(LS_DISTANCE_CACHE, JSON.stringify({ cache: distanceCache, calculated: distanceDataCalculated }));
         } else {
           localStorage.removeItem(LS_DISTANCE_CACHE);
         }
-      } catch (e) { }
+      } catch (e) {}
     }
 
+    /** Load OSRM distances from LS. */
     function loadDistanceCacheFromLocalStorage() {
       try {
         const raw = localStorage.getItem(LS_DISTANCE_CACHE);
         if (!raw) return;
-
         const data = JSON.parse(raw);
         if (data.cache && typeof data.cache === 'object') {
           distanceCache = data.cache;
           distanceDataCalculated = data.calculated || {};
         }
-      } catch (e) { }
+      } catch (e) {}
     }
 
+    // Load station from LS
     function loadStationFromLocalStorage() {
       try {
         const raw = localStorage.getItem(LS_STATION);
         if (!raw) return;
-
         const data = JSON.parse(raw);
         if (!data.lat || !data.lng) return;
 
@@ -992,22 +1292,22 @@
         const marker = L.marker(latlng, { draggable: true }).addTo(map);
         marker.bindPopup('Station');
 
+        // When dragged update the stored lat.lng and clear LS cached distances
         marker.on('dragend', () => {
           _station.latlng = marker.getLatLng();
           updateStationDisplay();
           saveStationToLocalStorage();
-
           distanceDataCalculated = {};
           distanceCache = {};
           saveDistanceCacheToLocalStorage();
         });
 
+        // Right-click to delete the station marker
         marker.on('contextmenu', () => {
           map.removeLayer(marker);
           _station = null;
           updateStationDisplay();
           saveStationToLocalStorage();
-
           distanceDataCalculated = {};
           distanceCache = {};
           saveDistanceCacheToLocalStorage();
@@ -1016,7 +1316,7 @@
 
         _station = { marker, latlng };
         updateStationDisplay();
-      } catch (e) { }
+      } catch (e) {}
     }
 
     function updateStationDisplay() {
@@ -1028,34 +1328,26 @@
       }
     }
 
+    // MAP CENTER
+
     function updateMapCenterDisplay() {
       const display = document.getElementById('mapCenterCoords');
-      if (mapCenter.lat === DEFAULT_MAP_CENTER.lat &&
-        mapCenter.lng === DEFAULT_MAP_CENTER.lng &&
-        mapCenter.zoom === DEFAULT_MAP_CENTER.zoom) {
+      if (mapCenter.lat === DEFAULT_MAP_CENTER.lat && mapCenter.lng === DEFAULT_MAP_CENTER.lng && mapCenter.zoom === DEFAULT_MAP_CENTER.zoom) {
         display.textContent = `Default: Lat ${mapCenter.lat}, Lng ${mapCenter.lng}, Zoom ${mapCenter.zoom}`;
       } else {
         display.textContent = `Custom: Lat ${mapCenter.lat.toFixed(6)}, Lng ${mapCenter.lng.toFixed(6)}, Zoom ${mapCenter.zoom}`;
       }
     }
 
+    // Geocode new address
     document.getElementById('setMapCenterBtn').addEventListener('click', async () => {
       const input = prompt(
-        `Enter an address or location:\n\n` +
-        `Examples:\n` +
-        `- 800 W Campbell Rd\n` +
-        `- University of Texas at Dallas\n` +
-        `- 75080\n` +
-        `- Dallas, TX\n\n` +
-        `The map will center on this location.`
+        `Enter an address or location:\n\nExamples:\n- 800 W Campbell Rd\n- University of Texas at Dallas\n- 75080\n- Dallas, TX\n\nThe map will center on this location.`
       );
-
       if (input === null || input.trim() === '') return;
 
-      const address = input.trim();
-
       try {
-        const encodedAddress = encodeURIComponent(address);
+        const encodedAddress = encodeURIComponent(input.trim());
         const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=1`);
         const data = await response.json();
 
@@ -1064,23 +1356,12 @@
           const lng = parseFloat(data[0].lon);
           const displayName = data[0].display_name;
 
-          const confirm = window.confirm(
-            `Found location:\n${displayName}\n\n` +
-            `Latitude: ${lat.toFixed(6)}\n` +
-            `Longitude: ${lng.toFixed(6)}\n\n` +
-            `Center map here?`
-          );
+          if (!window.confirm(`Found location:\n${displayName}\n\nLatitude: ${lat.toFixed(6)}\nLongitude: ${lng.toFixed(6)}\n\nCenter map here?`)) return;
 
-          if (!confirm) return;
+          mapCenter = { lat, lng, zoom: map.getZoom() };
+          try { localStorage.setItem(LS_MAP_CENTER, JSON.stringify(mapCenter)); } catch (e) {}
 
-          const currentZoom = map.getZoom();
-
-          mapCenter = { lat, lng, zoom: currentZoom };
-          try {
-            localStorage.setItem(LS_MAP_CENTER, JSON.stringify(mapCenter));
-          } catch (e) { }
-
-          map.setView([lat, lng], currentZoom);
+          map.setView([lat, lng], mapCenter.zoom);
           updateMapCenterDisplay();
           alert('Map center saved!');
         } else {
@@ -1092,38 +1373,25 @@
       }
     });
 
+    // Save current view as default
     document.getElementById('setCurrentAsDefaultBtn').addEventListener('click', () => {
-      const currentCenter = map.getCenter();
-      const currentZoom = map.getZoom();
+      const center = map.getCenter();
+      const zoom = map.getZoom();
+      if (!confirm(`Set current view as default?\n\nLatitude: ${center.lat.toFixed(6)}\nLongitude: ${center.lng.toFixed(6)}\nZoom: ${zoom}`)) return;
 
-      const confirmMsg = `Set current view as default?\n\n` +
-        `Latitude: ${currentCenter.lat.toFixed(6)}\n` +
-        `Longitude: ${currentCenter.lng.toFixed(6)}\n` +
-        `Zoom: ${currentZoom}`;
-
-      if (!confirm(confirmMsg)) return;
-
-      mapCenter = {
-        lat: currentCenter.lat,
-        lng: currentCenter.lng,
-        zoom: currentZoom
-      };
-
-      try {
-        localStorage.setItem(LS_MAP_CENTER, JSON.stringify(mapCenter));
-      } catch (e) { }
-
+      mapCenter = { lat: center.lat, lng: center.lng, zoom };
+      try { localStorage.setItem(LS_MAP_CENTER, JSON.stringify(mapCenter)); } catch (e) {}
       updateMapCenterDisplay();
       alert('Current view set as default!');
     });
 
+    // back to the saved default view
     document.getElementById('resetMapCenterBtn').addEventListener('click', () => {
       if (!confirm('Reset map view to saved default?')) return;
-
       map.setView([mapCenter.lat, mapCenter.lng], mapCenter.zoom);
-      alert('Map view reset to default!');
     });
 
+    // reload all saved polygons from lS
     function savePolygonsToLocalStorage() {
       try {
         const simple = polygons.map(p => ({
@@ -1133,7 +1401,7 @@
           categoryLocations: p.categoryLocations || []
         }));
         localStorage.setItem(LS_POLYGONS, JSON.stringify(simple));
-      } catch (e) { }
+      } catch (e) {}
     }
 
     function loadPolygonsFromLocalStorage() {
@@ -1142,34 +1410,29 @@
         if (!raw) return;
         const items = JSON.parse(raw);
         if (!Array.isArray(items)) return;
+
         items.forEach(p => {
           const color = p.isCategory ? '#000' : 'blue';
           const fillColor = p.isCategory ? 'rgba(0,0,255,0.4)' : 'rgba(0,0,255,0.4)';
           const weight = p.isCategory ? 3 : 2;
           const layer = L.polygon(p.coords, { color, fillColor, weight }).addTo(map);
-          const polyObj = {
-            name: p.name,
-            coords: p.coords,
-            layer,
-            isCategory: p.isCategory || false,
-            categoryLocations: p.categoryLocations || []
-          };
+          const polyObj   = { name: p.name, coords: p.coords, layer, isCategory: p.isCategory || false, categoryLocations: p.categoryLocations || [] };
+
           polygons.push(polyObj);
           createLabelForPolygon(polyObj);
 
+          // hide categories by default
           if (polyObj.isCategory) {
-            if (layer && map.hasLayer(layer)) {
-              map.removeLayer(layer);
-            }
-            if (polyObj.label && map.hasLayer(polyObj.label)) {
-              map.removeLayer(polyObj.label);
-            }
+            if (layer && map.hasLayer(layer)) map.removeLayer(layer);
+            if (polyObj.label && map.hasLayer(polyObj.label)) map.removeLayer(polyObj.label);
           }
         });
+
         updatePolygonList();
-      } catch (e) { }
+      } catch (e) {}
     }
 
+    // incident data saved rerendering
     function saveCsvToLocalStorage() {
       try {
         localStorage.setItem(LS_CSV, JSON.stringify({
@@ -1178,9 +1441,10 @@
           locationColumn: locationColumnName,
           filterableColumns: filterableColumns
         }));
-      } catch (e) { }
+      } catch (e) {}
     }
 
+    //restore incident data from LS
     function loadCsvFromLocalStorage() {
       try {
         const raw = localStorage.getItem(LS_CSV);
@@ -1193,37 +1457,46 @@
 
         if (csvRows.length > 0) {
           activeFilters = {};
-          filterableColumns.forEach(col => {
-            activeFilters[col] = new Set();
-          });
-
+          filterableColumns.forEach(col => { activeFilters[col] = new Set(); });
           buildDynamicFilters();
           updateCsvSummary();
         }
-      } catch (e) { }
+      } catch (e) {}
     }
 
     function saveCustomFiltersToLocalStorage() {
       try {
-        localStorage.setItem(LS_CUSTOM_FILTERS, JSON.stringify(customFilters));
-      } catch (e) { }
+        const serialisable = customFilters.map(f => ({
+          ...f,
+          activeRanges: Array.from(f.activeRanges || new Set())
+        }));
+        localStorage.setItem(LS_CUSTOM_FILTERS, JSON.stringify(serialisable));
+      } catch (e) {}
     }
 
+    //load LS filtersr
     function loadCustomFiltersFromLocalStorage() {
       try {
         const raw = localStorage.getItem(LS_CUSTOM_FILTERS);
         if (!raw) return;
-        customFilters = JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        customFilters = parsed.map(f => ({
+          ...f,
+          activeRanges: new Set(f.activeRanges || [])
+        }));
         renderCustomFilters();
-      } catch (e) { }
+      } catch (e) {}
     }
 
+    //create polygon labels
     function createLabelForPolygon(poly) {
+      // centroid calculation
       let latSum = 0, lngSum = 0;
       poly.coords.forEach(c => { latSum += c[0]; lngSum += c[1]; });
       const centroid = [latSum / poly.coords.length, lngSum / poly.coords.length];
-      poly.centroid = centroid;
+      poly.centroid  = centroid;
 
+      // distinguishing category design
       const iconClass = poly.isCategory ? 'category-label' : 'poly-label';
       const icon = L.divIcon({ className: iconClass, html: `${poly.name}`, iconSize: null });
       const marker = L.marker(centroid, { icon });
@@ -1232,152 +1505,125 @@
         ? document.getElementById('toggleCategoryLabels').checked
         : document.getElementById('toggleLabels').checked;
 
-      if (shouldShow) {
-        marker.addTo(map);
-      }
-
+      if (shouldShow) marker.addTo(map);
       poly.label = marker;
 
-      poly.layer.on('click', () => {
-        showPolygonPopup(poly);
-      });
+      // Click polygon to open data details
+      poly.layer.on('click', () => { showPolygonPopup(poly); });
 
+      // Right-click to delete polygon
       poly.layer.on('contextmenu', function (e) {
-        try { e.originalEvent.preventDefault(); } catch (_) { }
+        try { e.originalEvent.preventDefault(); } catch (_) {}
         if (!confirm(`Delete ${poly.isCategory ? 'category' : 'polygon'} "${poly.name}"?`)) return;
         const idx = polygons.findIndex(p => p.layer === poly.layer);
         if (idx >= 0) deletePolygon(idx);
       });
     }
 
+    // toggle label visibility
     document.getElementById('toggleLabels').addEventListener('change', e => {
       const show = e.target.checked;
       polygons.forEach(p => {
-        if (p.isCategory) return;
-        if (!p.label) return;
-        if (show) {
-          if (!map.hasLayer(p.label)) p.label.addTo(map);
-        } else {
-          if (map.hasLayer(p.label)) map.removeLayer(p.label);
-        }
+        if (p.isCategory || !p.label) return;
+        show ? (map.hasLayer(p.label) || p.label.addTo(map)) : map.removeLayer(p.label);
       });
     });
 
     document.getElementById('toggleCategoryLabels').addEventListener('change', e => {
       const show = e.target.checked;
       polygons.forEach(p => {
-        if (!p.isCategory) return;
-        if (!p.label) return;
-        if (show) {
-          if (!map.hasLayer(p.label)) p.label.addTo(map);
-        } else {
-          if (map.hasLayer(p.label)) map.removeLayer(p.label);
-        }
+        if (!p.isCategory || !p.label) return;
+        show ? (map.hasLayer(p.label) || p.label.addTo(map)) : map.removeLayer(p.label);
       });
     });
 
+    // Switch heatmap mode
     document.querySelectorAll('input[name="heatmapMode"]').forEach(radio => {
       radio.addEventListener('change', async () => {
         const mode = radio.value;
         const hasCategories = polygons.some(p => p.isCategory);
 
         if (mode === 'distance') {
+          // Update legend to red→green scale
           document.getElementById('legendBar').style.background = 'linear-gradient(90deg, rgba(255,0,0,0.9), rgba(0,255,0,0.3))';
           document.getElementById('legendText').textContent = 'Areas: Red = Slower/Green = Faster';
-
           if (hasCategories) {
             document.getElementById('legendTextCategory').style.display = 'block';
             document.getElementById('legendTextCategory').textContent = 'Categories: Red = Slower/Green = Faster';
-          } else {
-            document.getElementById('legendTextCategory').style.display = 'none';
           }
 
+          // make sure station is set.
           if (!_station) {
             alert('Please set a station location first for Distance/Time Map');
             document.querySelector('input[name="heatmapMode"][value="incidents"]').checked = true;
-            document.getElementById('legendBar').style.background = 'linear-gradient(90deg, rgba(170,170,170,0.4), rgba(0,0,255,0.9))';
-            document.getElementById('legendText').textContent = 'Gray = fewer incidents; Blue = greater incidents';
-
-            if (hasCategories) {
-              document.getElementById('legendTextCategory').style.display = 'block';
-              document.getElementById('legendTextCategory').textContent = 'Categories: Gray = fewer; Blue = greater';
-            } else {
-              document.getElementById('legendTextCategory').style.display = 'none';
-            }
+            resetLegendToIncidents(hasCategories);
             return;
           }
 
+          // Guard: CSV must have a timeElapsed column
           if (!csvColumns.includes('timeElapsed')) {
             alert('CSV must include a "timeElapsed" column for Distance/Time Map');
             document.querySelector('input[name="heatmapMode"][value="incidents"]').checked = true;
-            document.getElementById('legendBar').style.background = 'linear-gradient(90deg, rgba(170,170,170,0.4), rgba(0,0,255,0.9))';
-            document.getElementById('legendText').textContent = 'Gray = fewer incidents; Blue = greater incidents';
-
-            if (hasCategories) {
-              document.getElementById('legendTextCategory').style.display = 'block';
-              document.getElementById('legendTextCategory').textContent = 'Categories: Gray = fewer; Blue = greater';
-            } else {
-              document.getElementById('legendTextCategory').style.display = 'none';
-            }
+            resetLegendToIncidents(hasCategories);
             return;
           }
 
+          // Fetch OSRM distances for specific routing mode
           if (!distanceDataCalculated[routingMode]) {
             document.getElementById('distanceLoadingIndicator').style.display = 'block';
             await calculateDistanceTimeRatios();
             document.getElementById('distanceLoadingIndicator').style.display = 'none';
             distanceDataCalculated[routingMode] = true;
           }
-
           updateShading();
+
         } else {
-          document.getElementById('legendBar').style.background = 'linear-gradient(90deg, rgba(170,170,170,0.4), rgba(0,0,255,0.9))';
-          document.getElementById('legendText').textContent = 'Areas: Gray = fewer; Blue = greater';
-
-          if (hasCategories) {
-            document.getElementById('legendTextCategory').style.display = 'block';
-            document.getElementById('legendTextCategory').textContent = 'Categories: Gray = fewer; Blue = greater';
-          } else {
-            document.getElementById('legendTextCategory').style.display = 'none';
-          }
-
+          // Incident count mode: gray→blue legend
+          resetLegendToIncidents(hasCategories);
           updateShading();
         }
       });
     });
 
-    function updateCategoryLabelToggleVisibility() {
-      const hasCategories = polygons.some(p => p.isCategory);
-      const container = document.getElementById('toggleCategoryLabelsContainer');
-      container.style.display = hasCategories ? 'flex' : 'none';
-    }
-
-    function updateLegendDisplay() {
-      const hasCategories = polygons.some(p => p.isCategory);
-      const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
-
+    function resetLegendToIncidents(hasCategories) {
+      document.getElementById('legendBar').style.background = 'linear-gradient(90deg, rgba(170,170,170,0.4), rgba(0,0,255,0.9))';
+      document.getElementById('legendText').textContent = 'Areas: Gray = fewer; Blue = greater';
       if (hasCategories) {
         document.getElementById('legendTextCategory').style.display = 'block';
-        if (mode === 'distance') {
-          document.getElementById('legendTextCategory').textContent = 'Categories: Red = Slower/Green = Faster';
-        } else {
-          document.getElementById('legendTextCategory').textContent = 'Categories: Gray = fewer; Blue = greater';
-        }
+        document.getElementById('legendTextCategory').textContent = 'Categories: Gray = fewer; Blue = greater';
       } else {
         document.getElementById('legendTextCategory').style.display = 'none';
       }
     }
 
+    // label visibility (cateogry)
+    function updateCategoryLabelToggleVisibility() {
+      const hasCategories = polygons.some(p => p.isCategory);
+      document.getElementById('toggleCategoryLabelsContainer').style.display = hasCategories ? 'flex' : 'none';
+    }
+
+    function updateLegendDisplay() {
+      const hasCategories = polygons.some(p => p.isCategory);
+      const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
+      if (hasCategories) {
+        document.getElementById('legendTextCategory').style.display = 'block';
+        document.getElementById('legendTextCategory').textContent =
+          mode === 'distance' ? 'Categories: Red = Slower/Green = Faster' : 'Categories: Gray = fewer; Blue = greater';
+      } else {
+        document.getElementById('legendTextCategory').style.display = 'none';
+      }
+    }
+
+    // delete polygon
     function deletePolygon(index) {
       const p = polygons[index];
       if (!p) return;
-      try { if (p.layer) map.removeLayer(p.layer); } catch (e) { }
-      try { if (p.label) map.removeLayer(p.label); } catch (e) { }
+      try { if (p.layer) map.removeLayer(p.layer); } catch (e) {}
+      try { if (p.label) map.removeLayer(p.label); } catch (e) {}
 
+      // Remove LS cached distance data
       Object.keys(distanceCache).forEach(mode => {
-        if (distanceCache[mode] && distanceCache[mode][p.name]) {
-          delete distanceCache[mode][p.name];
-        }
+        if (distanceCache[mode] && distanceCache[mode][p.name]) delete distanceCache[mode][p.name];
       });
 
       polygons.splice(index, 1);
@@ -1389,23 +1635,69 @@
       updateShading();
     }
 
+    // Clear all areas (onyl areas)
+    document.getElementById('clearAreasBtn').addEventListener('click', () => {
+      const areaCount = polygons.filter(p => !p.isCategory).length;
+      if (areaCount === 0) { alert('No areas to clear.'); return; }
+      if (!confirm(`Delete all ${areaCount} area(s)? Categories will not be affected.`)) return;
+
+      polygons.filter(p => !p.isCategory).forEach(p => {
+        try { if (p.layer) map.removeLayer(p.layer); } catch (_) {}
+        try { if (p.label) map.removeLayer(p.label); } catch (_) {}
+        // Clear cached distances for removed areas
+        Object.keys(distanceCache).forEach(mode => {
+          if (distanceCache[mode] && distanceCache[mode][p.name]) delete distanceCache[mode][p.name];
+        });
+      });
+
+      polygons = polygons.filter(p => p.isCategory); //keeps categories
+      savePolygonsToLocalStorage();
+      saveDistanceCacheToLocalStorage();
+      updatePolygonList();
+      updateShading();
+    });
+
+    // clear all cateogires
+    document.getElementById('clearCategoriesBtn').addEventListener('click', () => {
+      const catCount = polygons.filter(p => p.isCategory).length;
+      if (catCount === 0) { alert('No categories to clear.'); return; }
+      if (!confirm(`Delete all ${catCount} categor${catCount === 1 ? 'y' : 'ies'}? Areas will not be affected.`)) return;
+
+      // Remove category layer and labels
+      polygons.filter(p => p.isCategory).forEach(p => {
+        try { if (p.layer) map.removeLayer(p.layer); } catch (_) {}
+        try { if (p.label) map.removeLayer(p.label); } catch (_) {}
+        Object.keys(distanceCache).forEach(mode => {
+          if (distanceCache[mode] && distanceCache[mode][p.name]) delete distanceCache[mode][p.name];
+        });
+      });
+
+      polygons = polygons.filter(p => !p.isCategory);  // keep only regular areas
+      savePolygonsToLocalStorage();
+      saveDistanceCacheToLocalStorage();
+      updatePolygonList();
+      updateCategoryLabelToggleVisibility();
+      updateLegendDisplay();
+      updateShading();
+    });
+
     function updatePolygonList() {
-      const regularCount = polygons.filter(p => !p.isCategory).length;
-      const categoryCount = polygons.filter(p => p.isCategory).length;
+      const regularCount  = polygons.filter(p => !p.isCategory).length;
+      const categoryCount = polygons.filter(p =>  p.isCategory).length;
       let text = `${regularCount} Area(s)`;
-      if (categoryCount > 0) {
-        text += `, ${categoryCount} Category(ies)`;
-      }
+      if (categoryCount > 0) text += `, ${categoryCount} Category(ies)`;
       document.getElementById('polygonList').innerText = `Current Selection: ${text}`;
     }
 
+    // COMPLETE RESET FUNC
     function resetAll() {
       if (!confirm('This will remove all polygons, CSV data, and custom filters. Continue?')) return;
-
       polygons.forEach(p => {
-        try { map.removeLayer(p.layer); } catch (_) { }
-        try { map.removeLayer(p.label); } catch (_) { }
+        try { map.removeLayer(p.layer); } catch (_) {}
+        try { map.removeLayer(p.label); } catch (_) {}
       });
+
+      // Clear state variables
       polygons = [];
       csvRows = [];
       csvColumns = [];
@@ -1420,6 +1712,8 @@
       saveCsvToLocalStorage();
       saveDistanceCacheToLocalStorage();
       saveCustomFiltersToLocalStorage();
+
+      // Refresh UI
       updatePolygonList();
       updateCsvSummary();
       updateShading();
@@ -1428,16 +1722,16 @@
       renderCustomFilters();
     }
 
+    // clearing only csv data, keeping polygons and filters.
     function resetCsvDataOnly() {
       if (!confirm('Delete uploaded CSV rows but keep polygons and custom filters?')) return;
-      csvRows = [];
-      csvColumns = [];
-      locationColumnName = '';
-      filterableColumns = [];
-      activeFilters = {};
+      csvRows                = [];
+      csvColumns             = [];
+      locationColumnName     = '';
+      filterableColumns      = [];
+      activeFilters          = {};
       distanceDataCalculated = {};
-      distanceCache = {};
-
+      distanceCache          = {};
       saveCsvToLocalStorage();
       saveDistanceCacheToLocalStorage();
       updateCsvSummary();
@@ -1447,22 +1741,17 @@
       alert('CSV data cleared.');
     }
 
+    // temp polygon for drawing
     function updateTempPolygon() {
-      if (tempPolygon) {
-        map.removeLayer(tempPolygon);
-      }
+      if (tempPolygon) map.removeLayer(tempPolygon);
       if (polygonPoints.length >= 2) {
         const color = categoryMode ? '#0a400c' : 'red';
         const fillColor = categoryMode ? 'rgba(162,123,92,0.3)' : 'rgba(255,0,0,0.3)';
-        tempPolygon = L.polygon(polygonPoints, {
-          color,
-          fillColor,
-          weight: 3,
-          dashArray: '4'
-        }).addTo(map);
+        tempPolygon = L.polygon(polygonPoints, { color, fillColor, weight: 3, dashArray: '4' }).addTo(map);
       }
     }
 
+    // Draggable point markers for ease of polygon drawing
     function createDraggableMarker(latlng, index) {
       const marker = L.circleMarker(latlng, {
         radius: 10,
@@ -1477,20 +1766,15 @@
 
       let isDragging = false;
       let hasDragged = false;
-
-      // Prevent any map interactions when over the marker
-      marker.on('add', function() {
+      marker.on('add', function () {
         const element = marker._path || marker._icon;
-        if (element) {
-          element.style.cursor = 'move';
-          element.style.pointerEvents = 'all';
-        }
+        if (element) { element.style.cursor = 'move'; element.style.pointerEvents = 'all'; }
       });
 
+      // mousedown disable map tracking/panning
       marker.on('mousedown', (e) => {
         isDragging = true;
         hasDragged = false;
-        // Disable all map interactions
         map.dragging.disable();
         map.doubleClickZoom.disable();
         map.scrollWheelZoom.disable();
@@ -1498,12 +1782,13 @@
         L.DomEvent.preventDefault(e);
       });
 
-      // Prevent map click event from firing when clicking on marker
+      // not adding a new polygonPoint when clicking to move one.
       marker.on('click', (e) => {
         L.DomEvent.stopPropagation(e);
         L.DomEvent.preventDefault(e);
       });
 
+      // move the marker and UPDATE the coordinate in polygonPoints
       const handleMove = (e) => {
         if (isDragging) {
           hasDragged = true;
@@ -1518,53 +1803,43 @@
       const handleUp = (e) => {
         if (isDragging) {
           isDragging = false;
-          // Re-enable all map interactions
           map.dragging.enable();
           map.doubleClickZoom.enable();
           map.scrollWheelZoom.enable();
 
           if (hasDragged) {
+            // Prevent a map click from registering from adding a point
             justFinishedDragging = true;
-            setTimeout(() => {
-              justFinishedDragging = false;
-            }, 100);
+            setTimeout(() => { justFinishedDragging = false; }, 100);
           }
-          
-          if (e) {
-            L.DomEvent.stopPropagation(e);
-            L.DomEvent.preventDefault(e);
-          }
+
+          if (e) { L.DomEvent.stopPropagation(e); L.DomEvent.preventDefault(e); }
         }
       };
 
       map.on('mousemove', handleMove);
-      map.on('mouseup', handleUp);
+      map.on('mouseup',   handleUp);
       marker.on('mouseup', handleUp);
-      
-      // Also handle mouse leaving the map entirely
-      map.on('mouseout', handleUp);
+      map.on('mouseout',  handleUp);
 
+      // Right-click marker to delete
       marker.on('contextmenu', (e) => {
         L.DomEvent.stopPropagation(e);
         L.DomEvent.preventDefault(e);
         if (polygonPoints.length > 3) {
           map.removeLayer(marker);
           map.off('mousemove', handleMove);
-          map.off('mouseup', handleUp);
-          map.off('mouseout', handleUp);
-
+          map.off('mouseup',   handleUp);
+          map.off('mouseout',  handleUp);
           polygonPoints.splice(index, 1);
           tempMarkers.splice(index, 1);
-
-          tempMarkers.forEach((m, i) => {
-            m._pointIndex = i;
-          });
-
+          tempMarkers.forEach((m, i) => { m._pointIndex = i; });   // re-index
           updateTempPolygon();
         } else {
           alert('Need at least 3 points for a polygon.');
         }
       });
+
 
       marker._pointIndex = index;
       marker._handleMove = handleMove;
@@ -1573,80 +1848,69 @@
       return marker;
     }
 
+    // CATEGORY MODE
+
     document.getElementById('categoryModeToggle').addEventListener('change', e => {
       categoryMode = e.target.checked;
       const controls = document.getElementById('categoryModeControls');
-      const banner = document.getElementById('categoryModeBanner');
+      const banner   = document.getElementById('categoryModeBanner');
 
       if (categoryMode) {
         controls.style.display = 'block';
-        banner.style.display = 'block';
+        banner.style.display   = 'block';
 
+        // Hide regular area polygons/labels
         polygons.forEach(p => {
           if (!p.isCategory) {
-            if (p.layer && map.hasLayer(p.layer)) {
-              map.removeLayer(p.layer);
-            }
-            if (p.label && map.hasLayer(p.label)) {
-              map.removeLayer(p.label);
-            }
+            if (p.layer && map.hasLayer(p.layer)) map.removeLayer(p.layer);
+            if (p.label && map.hasLayer(p.label)) map.removeLayer(p.label);
           }
         });
 
+        // Show labels
         const categoryLabelsVisible = document.getElementById('toggleCategoryLabels').checked;
         polygons.forEach(p => {
           if (p.isCategory) {
-            if (p.layer && !map.hasLayer(p.layer)) {
-              p.layer.addTo(map);
-            }
-            if (p.label && !map.hasLayer(p.label) && categoryLabelsVisible) {
-              p.label.addTo(map);
-            }
+            if (p.layer && !map.hasLayer(p.layer)) p.layer.addTo(map);
+            if (p.label && !map.hasLayer(p.label) && categoryLabelsVisible) p.label.addTo(map);
           }
         });
 
         updateShading();
       } else {
         controls.style.display = 'none';
-        banner.style.display = 'none';
+        banner.style.display   = 'none';
 
+        // hide labels
         polygons.forEach(p => {
           if (p.isCategory) {
-            if (p.layer && map.hasLayer(p.layer)) {
-              map.removeLayer(p.layer);
-            }
-            if (p.label && map.hasLayer(p.label)) {
-              map.removeLayer(p.label);
-            }
+            if (p.layer && map.hasLayer(p.layer)) map.removeLayer(p.layer);
+            if (p.label && map.hasLayer(p.label)) map.removeLayer(p.label);
           }
         });
 
         const labelsVisible = document.getElementById('toggleLabels').checked;
         polygons.forEach(p => {
           if (!p.isCategory) {
-            if (p.layer && !map.hasLayer(p.layer)) {
-              p.layer.addTo(map);
-            }
-            if (p.label && !map.hasLayer(p.label) && labelsVisible) {
-              p.label.addTo(map);
-            }
+            if (p.layer && !map.hasLayer(p.layer)) p.layer.addTo(map);
+            if (p.label && !map.hasLayer(p.label) && labelsVisible) p.label.addTo(map);
           }
         });
 
+        // halt in-progress drawing
         if (drawing) {
           drawing = false;
-          document.getElementById('startBtn').disabled = false;
-          document.getElementById('finishBtn').disabled = true;
-          document.getElementById('startCategoryBtn').disabled = false;
+          document.getElementById('startBtn').disabled         = false;
+          document.getElementById('finishBtn').disabled        = true;
+          document.getElementById('startCategoryBtn').disabled  = false;
           document.getElementById('finishCategoryBtn').disabled = true;
           document.getElementById('locationSelectionContainer').style.display = 'none';
-
           if (tempPolygon) map.removeLayer(tempPolygon);
           tempMarkers.forEach(m => {
             map.removeLayer(m);
             if (m._handleMove) map.off('mousemove', m._handleMove);
-            if (m._handleUp) map.off('mouseup', m._handleUp);
-            if (m._handleOut) map.off('mouseout', m._handleOut);
+            if (m._handleUp)   map.off('mouseup',   m._handleUp);
+            if (m._handleOut)  map.off('mouseout',  m._handleOut);
           });
           tempMarkers = [];
           polygonPoints = [];
@@ -1657,62 +1921,53 @@
       }
     });
 
+    // location search and selection for categories
     function getUniqueLocations() {
       const locations = new Set();
       csvRows.forEach(row => {
         const loc = row[locationColumnName];
-        if (loc && loc.trim() !== '') {
-          locations.add(loc.trim());
-        }
+        if (loc && loc.trim() !== '') locations.add(loc.trim());
       });
       return Array.from(locations).sort();
     }
+
 
     function buildLocationCheckboxList() {
       const container = document.getElementById('locationCheckboxList');
       const searchBox = document.getElementById('locationSearchBox');
       container.innerHTML = '';
-
-      searchBox.value = '';
+      searchBox.value     = '';
 
       const locations = getUniqueLocations();
-
       if (locations.length === 0) {
         container.innerHTML = '<div class="small-note">No locations found in CSV</div>';
         return;
       }
 
+      // rerender search list by current string
       const renderLocations = (filterText = '') => {
         container.innerHTML = '';
-
-        const filteredLocations = filterText.trim() === ''
+        const filtered = filterText.trim() === ''
           ? locations
           : locations.filter(loc => loc.toLowerCase().includes(filterText.toLowerCase()));
 
-        if (filteredLocations.length === 0) {
+        if (filtered.length === 0) {
           container.innerHTML = '<div class="small-note">No locations match your search</div>';
           return;
         }
 
-        filteredLocations.forEach(loc => {
+        filtered.forEach(loc => {
           const item = document.createElement('div');
           item.className = 'location-checkbox-item';
-
           const checkbox = document.createElement('input');
           checkbox.type = 'checkbox';
           checkbox.value = loc;
           checkbox.id = `loc-checkbox-${loc.replace(/\s+/g, '-')}`;
 
-          if (selectedLocations.has(loc)) {
-            checkbox.checked = true;
-          }
+          if (selectedLocations.has(loc)) checkbox.checked = true;
 
           checkbox.addEventListener('change', e => {
-            if (e.target.checked) {
-              selectedLocations.add(loc);
-            } else {
-              selectedLocations.delete(loc);
-            }
+            e.target.checked ? selectedLocations.add(loc) : selectedLocations.delete(loc);
           });
 
           const label = document.createElement('label');
@@ -1727,37 +1982,37 @@
       };
 
       renderLocations();
-
-      searchBox.addEventListener('input', (e) => {
-        renderLocations(e.target.value);
-      });
+      // rerender search list on every keystroke
+      searchBox.addEventListener('input', e => renderLocations(e.target.value));
     }
 
+
+    // CATEGORY DWRAWING
     document.getElementById('startCategoryBtn').addEventListener('click', function () {
       if (csvRows.length === 0) {
         alert('Please upload a CSV file first to create categories.');
         return;
       }
 
+      // Reset drawing state
       drawing = true;
       polygonPoints = [];
       selectedLocations.clear();
 
+      // Remove temp markers
       tempMarkers.forEach(m => {
         map.removeLayer(m);
         if (m._handleMove) map.off('mousemove', m._handleMove);
-        if (m._handleUp) map.off('mouseup', m._handleUp);
-        if (m._handleOut) map.off('mouseout', m._handleOut);
+        if (m._handleUp) map.off('mouseup',   m._handleUp);
+        if (m._handleOut) map.off('mouseout',  m._handleOut);
       });
       tempMarkers = [];
-
       if (tempPolygon) map.removeLayer(tempPolygon);
       tempPolygon = null;
 
       this.disabled = true;
       document.getElementById('finishCategoryBtn').disabled = false;
       document.getElementById('locationSelectionContainer').style.display = 'block';
-
       buildLocationCheckboxList();
     });
 
@@ -1767,47 +2022,31 @@
       document.getElementById('startCategoryBtn').disabled = false;
       document.getElementById('locationSelectionContainer').style.display = 'none';
 
-      if (polygonPoints.length < 3) {
-        alert('Need at least 3 points.');
-        return;
-      }
-
-      if (selectedLocations.size === 0) {
-        alert('Please select at least one location for this category.');
-        return;
-      }
+      if (polygonPoints.length < 3) { alert('Need at least 3 points.'); return; }
+      if (selectedLocations.size  === 0) { alert('Please select at least one location for this category.'); return; }
 
       if (tempPolygon) map.removeLayer(tempPolygon);
       tempMarkers.forEach(m => {
         map.removeLayer(m);
         if (m._handleMove) map.off('mousemove', m._handleMove);
-        if (m._handleUp) map.off('mouseup', m._handleUp);
-        if (m._handleOut) map.off('mouseout', m._handleOut);
+        if (m._handleUp)   map.off('mouseup',   m._handleUp);
+        if (m._handleOut)  map.off('mouseout',  m._handleOut);
       });
       tempMarkers = [];
 
       let categoryName = prompt('Enter a name for this category:');
       if (!categoryName) categoryName = 'Unnamed Category';
 
-      const finalPolygon = L.polygon(polygonPoints, {
-        color: '#0a400c',
-        fillColor: 'rgba(162,123,92,0.4)',
-        weight: 3
-      }).addTo(map);
-
+      // draw category polygon on map
+      const finalPolygon = L.polygon(polygonPoints, { color: '#0a400c', fillColor: 'rgba(162,123,92,0.4)', weight: 3 }).addTo(map);
       const polyObj = {
-        name: categoryName.trim(),
-        coords: polygonPoints,
-        layer: finalPolygon,
-        isCategory: true,
-        categoryLocations: Array.from(selectedLocations)
+        name: categoryName.trim(), coords: polygonPoints, layer: finalPolygon,
+        isCategory: true, categoryLocations: Array.from(selectedLocations)
       };
 
+      // polygon centroid computation
       let latSum = 0, lngSum = 0;
-      polyObj.coords.forEach(c => {
-        latSum += c[0];
-        lngSum += c[1];
-      });
+      polyObj.coords.forEach(c => { latSum += c[0]; lngSum += c[1]; });
       polyObj.centroid = [latSum / polyObj.coords.length, lngSum / polyObj.coords.length];
 
       polygons.push(polyObj);
@@ -1816,28 +2055,25 @@
       updatePolygonList();
       updateCategoryLabelToggleVisibility();
       updateLegendDisplay();
-
       selectedLocations.clear();
       distanceDataCalculated = {};
-
       updateShading();
     });
+
+    // AREA DRAWING func
 
     document.getElementById('startBtn').addEventListener('click', function () {
       drawing = true;
       polygonPoints = [];
-
       tempMarkers.forEach(m => {
         map.removeLayer(m);
         if (m._handleMove) map.off('mousemove', m._handleMove);
-        if (m._handleUp) map.off('mouseup', m._handleUp);
-        if (m._handleOut) map.off('mouseout', m._handleOut);
+        if (m._handleUp) map.off('mouseup',   m._handleUp);
+        if (m._handleOut) map.off('mouseout',  m._handleOut);
       });
       tempMarkers = [];
-
       if (tempPolygon) map.removeLayer(tempPolygon);
       tempPolygon = null;
-
       this.disabled = true;
       document.getElementById('finishBtn').disabled = false;
     });
@@ -1847,42 +2083,28 @@
       this.disabled = true;
       document.getElementById('startBtn').disabled = false;
 
-      if (polygonPoints.length < 3) {
-        alert('Need at least 3 points.');
-        return;
-      }
+      if (polygonPoints.length < 3) { alert('Need at least 3 points.'); return; }
 
       if (tempPolygon) map.removeLayer(tempPolygon);
       tempMarkers.forEach(m => {
         map.removeLayer(m);
         if (m._handleMove) map.off('mousemove', m._handleMove);
-        if (m._handleUp) map.off('mouseup', m._handleUp);
-        if (m._handleOut) map.off('mouseout', m._handleOut);
+        if (m._handleUp) map.off('mouseup',   m._handleUp);
+        if (m._handleOut) map.off('mouseout',  m._handleOut);
       });
       tempMarkers = [];
 
       let polyName = prompt('Enter a name for this polygon:');
       if (!polyName) polyName = 'Unnamed Polygon';
 
-      const finalPolygon = L.polygon(polygonPoints, {
-        color: 'blue',
-        fillColor: 'rgba(0,0,255,0.4)',
-        weight: 2
-      }).addTo(map);
-
+      const finalPolygon = L.polygon(polygonPoints, { color: 'blue', fillColor: 'rgba(0,0,255,0.4)', weight: 2 }).addTo(map);
       const polyObj = {
-        name: polyName.trim(),
-        coords: polygonPoints,
-        layer: finalPolygon,
-        isCategory: false,
-        categoryLocations: []
+        name: polyName.trim(), coords: polygonPoints, layer: finalPolygon,
+        isCategory: false, categoryLocations: []
       };
 
       let latSum = 0, lngSum = 0;
-      polyObj.coords.forEach(c => {
-        latSum += c[0];
-        lngSum += c[1];
-      });
+      polyObj.coords.forEach(c => { latSum += c[0]; lngSum += c[1]; });
       polyObj.centroid = [latSum / polyObj.coords.length, lngSum / polyObj.coords.length];
 
       polygons.push(polyObj);
@@ -1890,35 +2112,32 @@
       savePolygonsToLocalStorage();
       updatePolygonList();
       updateLegendDisplay();
-
       distanceDataCalculated = {};
-
       updateShading();
     });
 
+    // add a polygon boundary point
+
     map.on('click', function (e) {
       if (!drawing) return;
-
-      if (justFinishedDragging) {
-        return;
-      }
+      // IGNORE the click that fires immediately after finishing a drag (working)
+      if (justFinishedDragging) return;
 
       const newPoint = [e.latlng.lat, e.latlng.lng];
-      const index = polygonPoints.length;
-
+      const index    = polygonPoints.length;
       polygonPoints.push(newPoint);
 
       const marker = createDraggableMarker(e.latlng, index);
       tempMarkers.push(marker);
-
       updateTempPolygon();
     });
+
+    // set station base
 
     document.getElementById('setStationBtn').addEventListener('click', () => {
       alert('Click anywhere on the map to place the station marker.');
       map.once('click', function (e) {
         const latlng = e.latlng;
-
         if (_station && _station.marker) map.removeLayer(_station.marker);
 
         const marker = L.marker(latlng, { draggable: true }).addTo(map);
@@ -1928,9 +2147,8 @@
           _station.latlng = marker.getLatLng();
           updateStationDisplay();
           saveStationToLocalStorage();
-
-          distanceDataCalculated = false;
-          distanceCache = {};
+          distanceDataCalculated = {};
+          distanceCache          = {};
           saveDistanceCacheToLocalStorage();
         });
 
@@ -1939,9 +2157,8 @@
           _station = null;
           updateStationDisplay();
           saveStationToLocalStorage();
-
-          distanceDataCalculated = false;
-          distanceCache = {};
+          distanceDataCalculated = {};
+          distanceCache          = {};
           saveDistanceCacheToLocalStorage();
           updateShading();
         });
@@ -1949,13 +2166,13 @@
         _station = { marker, latlng };
         updateStationDisplay();
         saveStationToLocalStorage();
-
         distanceDataCalculated = {};
-        distanceCache = {};
+        distanceCache          = {};
         saveDistanceCacheToLocalStorage();
       });
     });
 
+    // CSV parsing
     function parseCSV(text) {
       const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
       if (lines.length === 0) return { rows: [], columns: [], locationColumn: '', filterableColumns: [] };
@@ -1963,43 +2180,32 @@
       const headerRaw = lines[0].split(',').map(h => h.trim());
       csvColumns = headerRaw;
 
+      // Find the 'location' column
       locationColumnName = '';
       for (let col of headerRaw) {
-        if (col.toLowerCase() === 'location') {
-          locationColumnName = col;
-          break;
-        }
+        if (col.toLowerCase() === 'location') { locationColumnName = col; break; }
       }
-
       if (!locationColumnName) {
         alert('Warning: No column named "location" found. Using first column as location identifier.');
         locationColumnName = headerRaw[0];
       }
 
+      // det. filterable columns
       filterableColumns = [];
       const sampleRow = lines.length > 1 ? lines[1].split(',').map(c => c.trim()) : [];
-
       headerRaw.forEach((colName, idx) => {
         if (colName === locationColumnName) return;
-
         const sampleValue = sampleRow[idx];
-        if (sampleValue && !isNaN(sampleValue) && sampleValue !== '') {
-          return;
-        }
-
+        if (sampleValue && !isNaN(sampleValue) && sampleValue !== '') return;
         filterableColumns.push(colName);
       });
 
       const rows = [];
       for (let i = 1; i < lines.length; i++) {
         const cols = lines[i].split(',').map(c => c.trim());
-        if (!cols[headerRaw.indexOf(locationColumnName)]) continue;
-
+        if (!cols[headerRaw.indexOf(locationColumnName)]) continue; // skips rows with no location
         const rowObj = {};
-        headerRaw.forEach((colName, idx) => {
-          rowObj[colName] = cols[idx] || '';
-        });
-
+        headerRaw.forEach((colName, idx) => { rowObj[colName] = cols[idx] || ''; });
         rows.push(rowObj);
       }
 
@@ -2012,17 +2218,15 @@
       const rdr = new FileReader();
       rdr.onload = function (e) {
         try {
-          const parsed = parseCSV(e.target.result);
-          csvRows = parsed.rows;
-          csvColumns = parsed.columns;
+          const parsed       = parseCSV(e.target.result);
+          csvRows            = parsed.rows;
+          csvColumns         = parsed.columns;
           locationColumnName = parsed.locationColumn;
-          filterableColumns = parsed.filterableColumns;
+          filterableColumns  = parsed.filterableColumns;
 
+          // Reset all filters
           activeFilters = {};
-          filterableColumns.forEach(col => {
-            activeFilters[col] = new Set();
-          });
-
+          filterableColumns.forEach(col => { activeFilters[col] = new Set(); });
           distanceDataCalculated = {};
 
           saveCsvToLocalStorage();
@@ -2036,88 +2240,192 @@
         }
       };
       rdr.readAsText(f);
-      ev.target.value = '';
+      ev.target.value = '';   // reset input completely
     });
 
+
     document.getElementById('createCustomFilterBtn').addEventListener('click', () => {
-      if (csvColumns.length === 0) {
-        alert('Please upload a CSV file first.');
+      if (csvColumns.length === 0) { alert('Please upload a CSV file first.'); return; }
+
+      const select = document.getElementById('modalColumnSelect');
+      select.innerHTML = '';
+      csvColumns.filter(col => col !== locationColumnName).forEach(col => {
+        const opt    = document.createElement('option');
+        opt.value    = col;
+        opt.textContent = col;
+        select.appendChild(opt);
+      });
+
+      // default modal state
+      document.getElementById('modalFilterName').value = '';
+      document.getElementById('modalNumericRanges').value = '';
+      document.getElementById('modalGroupName').value     = '';
+      document.getElementById('modalGroupList').innerHTML = '';
+      modalCategoricalGroups = [];
+      selectModalType('numeric'); //default
+
+      document.getElementById('customFilterModal').style.display = 'flex';
+    });
+
+    function closeCustomFilterModal() {
+      document.getElementById('customFilterModal').style.display = 'none';
+    }
+
+    // select modal type
+    function selectModalType(type) {
+      modalFilterType = type;
+
+      document.getElementById('modalTypeNumeric').classList.toggle('selected', type === 'numeric');
+      document.getElementById('modalTypeCategorical').classList.toggle('selected', type === 'categorical');
+
+      document.getElementById('modalNumericSection').style.display     = type === 'numeric'      ? 'block' : 'none';
+      document.getElementById('modalCategoricalSection').style.display = type === 'categorical'  ? 'block' : 'none';
+
+      if (type === 'categorical') populateCategoricalValues();
+    }
+
+
+    function populateCategoricalValues() {
+      const colName   = document.getElementById('modalColumnSelect').value;
+      const container = document.getElementById('modalValueCheckboxes');
+      container.innerHTML = '';
+
+      const uniqueVals = new Set();
+      csvRows.forEach(row => {
+        const val = row[colName];
+        if (val && val.trim() !== '') uniqueVals.add(val.trim());
+      });
+
+      if (uniqueVals.size === 0) {
+        container.innerHTML = '<div class="small-note">No values found in this column.</div>';
         return;
       }
 
-      const availableColumns = csvColumns.filter(col => col !== locationColumnName);
+      Array.from(uniqueVals).sort().forEach(val => {
+        const item     = document.createElement('label');
+        item.className = 'filter-item';
+        item.style.display = 'flex';
+        item.style.padding = '2px 4px';
 
-      if (availableColumns.length === 0) {
-        alert('No filterable columns found in CSV.');
-        return;
-      }
+        const cb   = document.createElement('input');
+        cb.type    = 'checkbox';
+        cb.value   = val;
 
-      const columnChoice = prompt(`Select a column:\n${availableColumns.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\nEnter number:`);
-      if (!columnChoice) return;
+        item.appendChild(cb);
+        item.appendChild(document.createTextNode(' ' + val));
+        container.appendChild(item);
+      });
+    }
 
-      const colIndex = parseInt(columnChoice) - 1;
-      if (colIndex < 0 || colIndex >= availableColumns.length) {
-        alert('Invalid selection.');
-        return;
-      }
+    document.getElementById('modalColumnSelect').addEventListener('change', () => {
+      if (modalFilterType === 'categorical') populateCategoricalValues();
+    });
 
-      const selectedColumn = availableColumns[colIndex];
+    // add a categorical group to a custom filter
+    function addCategoricalGroup() {
+      const groupName = document.getElementById('modalGroupName').value.trim();
+      if (!groupName) { alert('Please enter a group name.'); return; }
 
-      const filterName = prompt(`Enter a name for this filter (e.g., "Age Groups", "Response Time Categories"):`);
-      if (!filterName || filterName.trim() === '') return;
+      // Collect selected values
+      const checkedValues = [];
+      document.querySelectorAll('#modalValueCheckboxes input[type="checkbox"]:checked').forEach(cb => {
+        checkedValues.push(cb.value);
+        cb.checked = false;
+      });
 
-      const rangesInput = prompt(
-        `Define ranges separated by semicolons.\n\n` +
-        `Format: <VALUE or MIN-MAX or >VALUE\n\n` +
-        `Examples:\n` +
-        `<18;18-30;>30\n` +
-        `<2;2-4.5;>4.5\n` +
-        `0-10;10-20;20-30;>30`
-      );
+      if (checkedValues.length === 0) { alert('Please select at least one value.'); return; }
 
-      if (!rangesInput || rangesInput.trim() === '') return;
+      modalCategoricalGroups.push({ label: groupName, values: checkedValues });
+      document.getElementById('modalGroupName').value = '';
 
-      const rangeStrings = rangesInput.split(';').map(r => r.trim()).filter(r => r !== '');
-      const ranges = [];
+      // updated group list preview
+      renderModalGroupList();
+    }
 
-      for (let rangeStr of rangeStrings) {
-        if (rangeStr.startsWith('<')) {
-          const val = parseFloat(rangeStr.substring(1));
-          if (isNaN(val)) {
-            alert(`Invalid range: ${rangeStr}`);
-            return;
+    //review and show existing modal groups
+    function renderModalGroupList() {
+      const container = document.getElementById('modalGroupList');
+      container.innerHTML = '';
+
+      modalCategoricalGroups.forEach((group, idx) => {
+        const item = document.createElement('div');
+        item.style.cssText = 'background:#f4ede1; border:1px solid var(--accent); border-radius:5px; padding:6px 8px; margin-top:6px;';
+
+        const header = document.createElement('div');
+        header.style.cssText = 'display:flex; justify-content:space-between; align-items:center;';
+
+        const nameSpan = document.createElement('strong');
+        nameSpan.textContent = group.label;
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '✕';
+        delBtn.style.cssText = 'background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; padding:1px 6px; border-radius:3px; cursor:pointer; font-size:11px; width:auto; margin:0;';
+        delBtn.onclick = () => {
+          modalCategoricalGroups.splice(idx, 1);
+          renderModalGroupList();
+        };
+
+        header.appendChild(nameSpan);
+        header.appendChild(delBtn);
+
+        const vals = document.createElement('div');
+        vals.style.cssText = 'font-size:11px; color:#6b7280; margin-top:2px;';
+        vals.textContent   = group.values.join(', ');
+
+        item.appendChild(header);
+        item.appendChild(vals);
+        container.appendChild(item);
+      });
+    }
+
+    // save detected custom filter
+    function saveCustomFilter() {
+      const colName    = document.getElementById('modalColumnSelect').value;
+      const filterName = document.getElementById('modalFilterName').value.trim();
+
+      if (!colName)    { alert('Please select a column.');        return; }
+      if (!filterName) { alert('Please enter a filter name.');    return; }
+
+      let ranges = [];
+
+      if (modalFilterType === 'numeric') {
+        // Numeric ranges
+        const rangesInput = document.getElementById('modalNumericRanges').value.trim();
+        if (!rangesInput) { alert('Please enter at least one range.'); return; }
+
+        const rangeStrings = rangesInput.split(';').map(r => r.trim()).filter(r => r !== '');
+        for (let rangeStr of rangeStrings) {
+          if (rangeStr.startsWith('<')) {
+            const val = parseFloat(rangeStr.substring(1));
+            if (isNaN(val)) { alert(`Invalid range: ${rangeStr}`); return; }
+            ranges.push({ type: 'less', value: val, label: rangeStr });
+          } else if (rangeStr.startsWith('>')) {
+            const val = parseFloat(rangeStr.substring(1));
+            if (isNaN(val)) { alert(`Invalid range: ${rangeStr}`); return; }
+            ranges.push({ type: 'greater', value: val, label: rangeStr });
+          } else if (rangeStr.includes('-')) {
+            const parts = rangeStr.split('-');
+            if (parts.length !== 2) { alert(`Invalid range: ${rangeStr}`); return; }
+            const min = parseFloat(parts[0]), max = parseFloat(parts[1]);
+            if (isNaN(min) || isNaN(max)) { alert(`Invalid range: ${rangeStr}`); return; }
+            ranges.push({ type: 'between', min, max, label: rangeStr });
+          } else {
+            alert(`Invalid range format: ${rangeStr}`); return;
           }
-          ranges.push({ type: 'less', value: val, label: rangeStr });
-        } else if (rangeStr.startsWith('>')) {
-          const val = parseFloat(rangeStr.substring(1));
-          if (isNaN(val)) {
-            alert(`Invalid range: ${rangeStr}`);
-            return;
-          }
-          ranges.push({ type: 'greater', value: val, label: rangeStr });
-        } else if (rangeStr.includes('-')) {
-          const parts = rangeStr.split('-');
-          if (parts.length !== 2) {
-            alert(`Invalid range: ${rangeStr}`);
-            return;
-          }
-          const min = parseFloat(parts[0]);
-          const max = parseFloat(parts[1]);
-          if (isNaN(min) || isNaN(max)) {
-            alert(`Invalid range: ${rangeStr}`);
-            return;
-          }
-          ranges.push({ type: 'between', min, max, label: rangeStr });
-        } else {
-          alert(`Invalid range format: ${rangeStr}`);
-          return;
         }
+      } else {
+        // Categorical groups
+        if (modalCategoricalGroups.length === 0) { alert('Please add at least one group.'); return; }
+        modalCategoricalGroups.forEach(group => {
+          ranges.push({ type: 'categorical', label: group.label, values: group.values });
+        });
       }
 
       const customFilter = {
         id: Date.now(),
-        name: filterName.trim(),
-        column: selectedColumn,
+        name: filterName,
+        column: colName,
+        filterType: modalFilterType,
         ranges: ranges,
         activeRanges: new Set()
       };
@@ -2125,7 +2433,8 @@
       customFilters.push(customFilter);
       saveCustomFiltersToLocalStorage();
       renderCustomFilters();
-    });
+      closeCustomFilterModal();
+    }
 
     function renderCustomFilters() {
       const container = document.getElementById('customFiltersContainer');
@@ -2136,13 +2445,13 @@
       customFilters.forEach(filter => {
         const filterBox = document.createElement('div');
         filterBox.className = 'custom-filter-item';
-
         const header = document.createElement('div');
         header.className = 'custom-filter-header';
 
         const nameSpan = document.createElement('span');
         nameSpan.className = 'custom-filter-name';
-        nameSpan.textContent = `${filter.name} (${filter.column})`;
+        const typeBadge = filter.filterType === 'categorical' ? ' 🏷️' : ' 📊';
+        nameSpan.textContent = `${filter.name} (${filter.column})${typeBadge}`;
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'custom-filter-delete';
@@ -2161,6 +2470,7 @@
         header.appendChild(deleteBtn);
         filterBox.appendChild(header);
 
+        // Checkbox list for filter groups
         const conditionsDiv = document.createElement('div');
         conditionsDiv.className = 'custom-filter-conditions';
 
@@ -2175,19 +2485,11 @@
           checkbox.checked = filter.activeRanges.has(range.label);
 
           checkbox.addEventListener('change', e => {
-            if (e.target.checked) {
-              filter.activeRanges.add(range.label);
-            } else {
-              filter.activeRanges.delete(range.label);
-            }
-
+            e.target.checked ? filter.activeRanges.add(range.label) : filter.activeRanges.delete(range.label);
             saveCustomFiltersToLocalStorage();
 
             const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
-            if (mode === 'distance' && distanceDataCalculated) {
-              updateDistanceTimeMetrics();
-            }
-
+            if (mode === 'distance' && distanceDataCalculated) updateDistanceTimeMetrics();
             updateCsvSummary();
             updateShading();
           });
@@ -2204,25 +2506,28 @@
 
     function applyCustomFilters(row) {
       for (let filter of customFilters) {
+        // Skip filters with nothing selected
         if (filter.activeRanges.size === 0) continue;
 
-        const value = parseFloat(row[filter.column]);
-        if (isNaN(value)) return false;
-
         let matchesAnyRange = false;
+
         for (let rangeLabel of filter.activeRanges) {
           const range = filter.ranges.find(r => r.label === rangeLabel);
           if (!range) continue;
 
-          if (range.type === 'less' && value < range.value) {
-            matchesAnyRange = true;
-            break;
-          } else if (range.type === 'greater' && value > range.value) {
-            matchesAnyRange = true;
-            break;
-          } else if (range.type === 'between' && value >= range.min && value <= range.max) {
-            matchesAnyRange = true;
-            break;
+          if (range.type === 'categorical') {
+            // categorical: check if row value is in group's values array
+            const rowVal = (row[filter.column] || '').trim();
+            if (range.values.includes(rowVal)) { matchesAnyRange = true; break; }
+
+          } else {
+            // numeric: parses the value and compare against the range bounds
+            const value = parseFloat(row[filter.column]);
+            if (isNaN(value)) continue;   // non-numeric values should never match numeric filters
+
+            if (range.type === 'less' && value < range.value) { matchesAnyRange = true; break; }
+            if (range.type === 'greater' && value > range.value) { matchesAnyRange = true; break; }
+            if (range.type === 'between' && value >= range.min && value <= range.max) { matchesAnyRange = true; break; }
           }
         }
 
@@ -2232,6 +2537,7 @@
       return true;
     }
 
+    // User-generated Filters
     function buildDynamicFilters() {
       const container = document.getElementById('dynamicFiltersContainer');
       container.innerHTML = '';
@@ -2250,38 +2556,38 @@
 
         const header = document.createElement('div');
         header.className = 'collapsible-header';
-        header.onclick = () => toggleCollapsible(filterId);
+        header.onclick   = () => toggleCollapsible(filterId);
 
         const headerTitle = document.createElement('span');
         headerTitle.textContent = colName;
 
-        const headerIcon = document.createElement('span');
-        headerIcon.className = 'collapse-icon collapsed';
-        headerIcon.id = `${filterId}-icon`;
+        const headerIcon    = document.createElement('span');
+        headerIcon.className = 'collapse-icon collapsed';  // start collapsed
+        headerIcon.id       = `${filterId}-icon`;
         headerIcon.textContent = '▼';
 
         header.appendChild(headerTitle);
         header.appendChild(headerIcon);
         filterBox.appendChild(header);
 
-        const content = document.createElement('div');
+        // Content area starts collapsed
+        const content    = document.createElement('div');
         content.className = 'collapsible-content collapsed';
-        content.id = `${filterId}-content`;
+        content.id       = `${filterId}-content`;
+        content.style.background = '#b1ab8620';
 
-        const filtersGrid = document.createElement('div');
-        filtersGrid.className = 'filters';
+        const scrollWrapper    = document.createElement('div');
+        scrollWrapper.className = 'filter-scroll-container';
 
         const uniqueValues = new Set();
         csvRows.forEach(row => {
           const value = row[colName];
-          if (value && value.trim() !== '') {
-            uniqueValues.add(value);
-          }
+          if (value && value.trim() !== '') uniqueValues.add(value);
         });
 
-        const DAY_ORDER = ['M', 'T', 'W', 'Th', 'F', 'Sa', 'Su'];
-        const isDayColumn = uniqueValues.size > 0 &&
-          Array.from(uniqueValues).every(v => DAY_ORDER.includes(v));
+        // Sort day columns in calendar order; everything else alphabetically
+        const DAY_ORDER = ['Su', 'M', 'T', 'W', 'Th', 'F', 'Sa'];
+        const isDayColumn = uniqueValues.size > 0 && Array.from(uniqueValues).every(v => DAY_ORDER.includes(v));
         const sortedValues = isDayColumn
           ? DAY_ORDER.filter(d => uniqueValues.has(d))
           : Array.from(uniqueValues).sort();
@@ -2289,6 +2595,7 @@
         sortedValues.forEach(value => {
           const label = document.createElement('label');
           label.className = 'filter-item';
+          label.style.padding = '2px 6px';
 
           const checkbox = document.createElement('input');
           checkbox.type = 'checkbox';
@@ -2296,27 +2603,21 @@
           checkbox.dataset.value = value;
 
           checkbox.addEventListener('change', e => {
-            if (e.target.checked) {
-              activeFilters[colName].add(value);
-            } else {
-              activeFilters[colName].delete(value);
-            }
+            // Add/remove the value from the active filter set for this column
+            e.target.checked ? activeFilters[colName].add(value) : activeFilters[colName].delete(value);
 
             const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
-            if (mode === 'distance' && distanceDataCalculated) {
-              updateDistanceTimeMetrics();
-            }
-
+            if (mode === 'distance' && distanceDataCalculated) updateDistanceTimeMetrics();
             updateCsvSummary();
             updateShading();
           });
 
           label.appendChild(checkbox);
           label.appendChild(document.createTextNode(' ' + value));
-          filtersGrid.appendChild(label);
+          scrollWrapper.appendChild(label);
         });
 
-        content.appendChild(filtersGrid);
+        content.appendChild(scrollWrapper);
         filterBox.appendChild(content);
         container.appendChild(filterBox);
       });
@@ -2327,68 +2628,59 @@
       container.innerHTML = '<div class="small-note">Upload a CSV to see available filters</div>';
     }
 
+    // Clear all active filter selections and refresh the map
     document.getElementById('clearFiltersBtn').addEventListener('click', function () {
-      Object.keys(activeFilters).forEach(col => {
-        activeFilters[col].clear();
-      });
+      // Clear standard filters
+      Object.keys(activeFilters).forEach(col => activeFilters[col].clear());
 
-      customFilters.forEach(filter => {
-        filter.activeRanges.clear();
-      });
+      // Clear active custom filters
+      customFilters.forEach(filter => filter.activeRanges.clear());
       saveCustomFiltersToLocalStorage();
 
-      document.querySelectorAll('#dynamicFiltersContainer input[type="checkbox"]').forEach(cb => {
-        cb.checked = false;
-      });
+      document.querySelectorAll('#dynamicFiltersContainer input[type="checkbox"]').forEach(cb => { cb.checked = false; });
 
-      document.querySelectorAll('#customFiltersContainer input[type="checkbox"]').forEach(cb => {
-        cb.checked = false;
-      });
+      document.querySelectorAll('#customFiltersContainer input[type="checkbox"]').forEach(cb => { cb.checked = false; });
 
       const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
-      if (mode === 'distance' && distanceDataCalculated) {
-        updateDistanceTimeMetrics();
-      }
-
+      if (mode === 'distance' && distanceDataCalculated) updateDistanceTimeMetrics();
       updateCsvSummary();
       updateShading();
     });
 
     document.getElementById('resetDataBtn').addEventListener('click', resetCsvDataOnly);
 
+    //Sum category data
+
     function getAggregatedCategoryData(poly) {
       if (!poly.isCategory) return null;
 
-      const categoryRows = csvRows.filter(row => {
-        const loc = row[locationColumnName];
-        return poly.categoryLocations.includes(loc);
-      });
+      // rows matching any of the category's locations
+      const categoryRows = csvRows.filter(row => poly.categoryLocations.includes(row[locationColumnName]));
 
+      // Subset with active filters
       const filteredRows = categoryRows.filter(row => {
         for (const colName of filterableColumns) {
           const filterSet = activeFilters[colName];
-          if (filterSet && filterSet.size > 0) {
-            if (!filterSet.has(row[colName])) {
-              return false;
-            }
-          }
+          if (filterSet && filterSet.size > 0 && !filterSet.has(row[colName])) return false;
         }
-
-        if (!applyCustomFilters(row)) {
-          return false;
-        }
-
+        if (!applyCustomFilters(row)) return false;
         return true;
       });
 
-      return {
-        totalRows: categoryRows,
-        filteredRows: filteredRows
-      };
+      return { totalRows: categoryRows, filteredRows };
     }
 
+
+
+
+
+
+
+    // INCIDENT COUNT calc.
     function computeCountsForPolygons() {
       const counts = {};
+
+      // counts for all polygons
       polygons.forEach(p => {
         if (p.isCategory) {
           const data = getAggregatedCategoryData(p);
@@ -2400,50 +2692,32 @@
 
       if (!csvRows || csvRows.length === 0) return counts;
 
+      // Walk through every CSV row and increment the matching area counts
       csvRows.forEach(r => {
-        let passesFilters = true;
-
         for (const colName of filterableColumns) {
           const filterSet = activeFilters[colName];
-          if (filterSet && filterSet.size > 0) {
-            if (!filterSet.has(r[colName])) {
-              passesFilters = false;
-              break;
-            }
-          }
+          if (filterSet && filterSet.size > 0 && !filterSet.has(r[colName])) return;
         }
+        if (!applyCustomFilters(r)) return;
 
-        if (!applyCustomFilters(r)) {
-          passesFilters = false;
-        }
-
-        if (passesFilters) {
-          const location = r[locationColumnName];
-          const poly = polygons.find(p => p.name === location && !p.isCategory);
-          if (poly && location in counts) counts[location] += 1;
-        }
+        const location = r[locationColumnName];
+        const poly     = polygons.find(p => p.name === location && !p.isCategory);
+        if (poly && location in counts) counts[location] += 1;
       });
 
       return counts;
     }
 
+    // distance calculation OSRM
     async function getBikingDistance(fromLat, fromLng, toLat, toLng) {
-      const modeMap = {
-        'bike': 'bike',
-        'driving': 'car',
-        'foot': 'foot'
-      };
-
+      const modeMap = { bike: 'bike', driving: 'car', foot: 'foot' };
       const osrmMode = modeMap[routingMode] || 'bike';
       const url = `https://router.project-osrm.org/route/v1/${osrmMode}/${fromLng},${fromLat};${toLng},${toLat}?overview=false`;
 
       try {
         const response = await fetch(url);
         const data = await response.json();
-
-        if (data.routes && data.routes.length > 0) {
-          return data.routes[0].distance;
-        }
+        if (data.routes && data.routes.length > 0) return data.routes[0].distance;   // metres
         return null;
       } catch (error) {
         console.error('OSRM API error:', error);
@@ -2451,31 +2725,23 @@
       }
     }
 
+    //compute distance/time ratios mfrom station
     async function calculateDistanceTimeRatios() {
-      if (!_station || polygons.length === 0 || csvRows.length === 0) {
-        return;
-      }
+      if (!_station || polygons.length === 0 || csvRows.length === 0) return;
 
       const stationLat = _station.latlng.lat;
       const stationLng = _station.latlng.lng;
 
-      if (!distanceCache[routingMode]) {
-        distanceCache[routingMode] = {};
-      }
+      if (!distanceCache[routingMode]) distanceCache[routingMode] = {};
 
       for (const poly of polygons) {
+        // Skip if distance already cached
         if (!distanceCache[routingMode][poly.name] || distanceCache[routingMode][poly.name].distance === undefined) {
           const [polyLat, polyLng] = poly.centroid;
-          const distanceMeters = await getBikingDistance(stationLat, stationLng, polyLat, polyLng);
+          const distanceMeters     = await getBikingDistance(stationLat, stationLng, polyLat, polyLng);
+          const distanceMiles      = distanceMeters ? distanceMeters * 0.000621371 : null;
 
-          const distanceMiles = distanceMeters ? distanceMeters * 0.000621371 : null;
-
-          distanceCache[routingMode][poly.name] = {
-            distance: distanceMiles,
-            avgTime: 0,
-            ratio: 0
-          };
-
+          distanceCache[routingMode][poly.name] = { distance: distanceMiles, avgTime: 0, ratio: 0 };
           await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
@@ -2484,35 +2750,24 @@
       saveDistanceCacheToLocalStorage();
     }
 
+    // Update efficiency metrics
     function updateDistanceTimeMetrics() {
-      if (!distanceCache[routingMode]) {
-        distanceCache[routingMode] = {};
-      }
+      if (!distanceCache[routingMode]) distanceCache[routingMode] = {};
 
       for (const poly of polygons) {
         let incidents;
-
         if (poly.isCategory) {
           const data = getAggregatedCategoryData(poly);
-          incidents = data ? data.filteredRows.filter(r => r.timeElapsed) : [];
+          incidents  = data ? data.filteredRows.filter(r => r.timeElapsed) : [];
         } else {
           incidents = csvRows.filter(r => {
             if (r[locationColumnName] !== poly.name) return false;
             if (!r.timeElapsed) return false;
-
             for (const colName of filterableColumns) {
               const filterSet = activeFilters[colName];
-              if (filterSet && filterSet.size > 0) {
-                if (!filterSet.has(r[colName])) {
-                  return false;
-                }
-              }
+              if (filterSet && filterSet.size > 0 && !filterSet.has(r[colName])) return false;
             }
-
-            if (!applyCustomFilters(r)) {
-              return false;
-            }
-
+            if (!applyCustomFilters(r)) return false;
             return true;
           });
         }
@@ -2520,48 +2775,41 @@
         if (incidents.length === 0 || !distanceCache[routingMode][poly.name]) {
           if (distanceCache[routingMode][poly.name]) {
             distanceCache[routingMode][poly.name].avgTime = 0;
-            distanceCache[routingMode][poly.name].ratio = 0;
+            distanceCache[routingMode][poly.name].ratio   = 0;
           }
           continue;
         }
 
-        const totalTime = incidents.reduce((sum, incident) => {
-          return sum + (parseFloat(incident.timeElapsed) || 0);
-        }, 0);
+        // Average of all timeElapsed values (assume time in minutes)
+        const totalTime = incidents.reduce((sum, inc) => sum + (parseFloat(inc.timeElapsed) || 0), 0);
         const avgTime = totalTime / incidents.length;
-
-        const distanceMiles = distanceCache[routingMode][poly.name].distance;
-        const ratio = avgTime > 0 && distanceMiles ? distanceMiles / avgTime : 0;
+        const distMiles = distanceCache[routingMode][poly.name].distance;
+        // Efficiency ratio: miles per minute
+        const ratio = avgTime > 0 && distMiles ? distMiles / avgTime : 0;
 
         distanceCache[routingMode][poly.name].avgTime = avgTime;
-        distanceCache[routingMode][poly.name].ratio = ratio;
+        distanceCache[routingMode][poly.name].ratio   = ratio;
       }
     }
 
     function interpolateColor(c1, c2, t) {
-      const r1 = parseInt(c1.slice(1, 3), 16), g1 = parseInt(c1.slice(3, 5), 16), b1 = parseInt(c1.slice(5, 7), 16);
-      const r2 = parseInt(c2.slice(1, 3), 16), g2 = parseInt(c2.slice(3, 5), 16), b2 = parseInt(c2.slice(5, 7), 16);
-      const r = Math.round(r1 + (r2 - r1) * t);
-      const g = Math.round(g1 + (g2 - g1) * t);
-      const b = Math.round(b1 + (b2 - b1) * t);
-      return `rgb(${r},${g},${b})`;
+      const r1 = parseInt(c1.slice(1,3),16), g1 = parseInt(c1.slice(3,5),16), b1 = parseInt(c1.slice(5,7),16);
+      const r2 = parseInt(c2.slice(1,3),16), g2 = parseInt(c2.slice(3,5),16), b2 = parseInt(c2.slice(5,7),16);
+      return `rgb(${Math.round(r1+(r2-r1)*t)},${Math.round(g1+(g2-g1)*t)},${Math.round(b1+(b2-b1)*t)})`;
     }
 
+    // Polygon (Area/Category) Shading protocol
     function updateShading() {
       const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
 
       if (mode === 'distance') {
-        if (!distanceCache[routingMode]) {
-          distanceCache[routingMode] = {};
-        }
+        if (!distanceCache[routingMode]) distanceCache[routingMode] = {};
 
         if (!distanceDataCalculated[routingMode] || Object.keys(distanceCache[routingMode]).length === 0) {
           polygons.forEach(p => {
-            if (p.isCategory) {
-              p.layer.setStyle({ color: '#0a400c', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 3 });
-            } else {
-              p.layer.setStyle({ color: '#aaaaaa', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 2 });
-            }
+            p.layer.setStyle(p.isCategory
+              ? { color: '#0a400c', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 3 }
+              : { color: '#aaaaaa', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 2 });
           });
 
           if (_station && csvRows.length > 0 && polygons.length > 0) {
@@ -2575,21 +2823,17 @@
           return;
         }
 
-        const allRatios = [];
-
-        Object.entries(distanceCache[routingMode]).forEach(([name, data]) => {
-          if (data.ratio > 0) {
-            allRatios.push(data.ratio);
-          }
-        });
+        // non-zero ratios to find min/max for normalization
+        const allRatios = Object.values(distanceCache[routingMode])
+          .map(d => d.ratio)
+          .filter(r => r > 0);
 
         if (allRatios.length === 0) {
+          // No data = shade everything gray
           polygons.forEach(p => {
-            if (p.isCategory) {
-              p.layer.setStyle({ color: '#0a400c', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 3 });
-            } else {
-              p.layer.setStyle({ color: '#aaaaaa', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 2 });
-            }
+            p.layer.setStyle(p.isCategory
+              ? { color: '#0a400c', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 3 }
+              : { color: '#aaaaaa', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 2 });
           });
           return;
         }
@@ -2600,90 +2844,54 @@
         polygons.forEach(p => {
           const data = distanceCache[routingMode][p.name];
           if (!data || data.ratio === 0) {
-            if (p.isCategory) {
-              p.layer.setStyle({ color: '#0a400c', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 3 });
-            } else {
-              p.layer.setStyle({ color: '#aaaaaa', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 2 });
-            }
+            p.layer.setStyle(p.isCategory
+              ? { color: '#0a400c', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 3 }
+              : { color: '#aaaaaa', fillColor: '#aaaaaa', fillOpacity: 0.4, weight: 2 });
             return;
           }
 
-          let color, opacity;
-
           const range = maxRatio - minRatio;
-          if (range > 0) {
-            const normalizedValue = (data.ratio - minRatio) / range;
-            color = interpolateColor('#ff0000', '#00ff00', normalizedValue);
-            opacity = 0.5 + (normalizedValue * 0.4);
-          } else {
-            color = '#00ff00';
-            opacity = 0.7;
-          }
+          const normalizedValue = range > 0 ? (data.ratio - minRatio) / range : 1;
+          // Red (slow) → Green (fast)
+          const color = interpolateColor('#ff0000', '#00ff00', normalizedValue);
+          const opacity = 0.5 + normalizedValue * 0.4;
 
-          if (p.isCategory) {
-            p.layer.setStyle({
-              color: '#0a400c',
-              fillColor: color,
-              fillOpacity: opacity,
-              weight: 3
-            });
-          } else {
-            p.layer.setStyle({
-              color: color,
-              fillColor: color,
-              fillOpacity: opacity,
-              weight: 2
-            });
-          }
+          p.layer.setStyle(p.isCategory
+            ? { color: '#0a400c', fillColor: color, fillOpacity: opacity, weight: 3 }
+            : { color: color, fillColor: color, fillOpacity: opacity, weight: 2 });
         });
 
         updateCsvSummary();
         return;
       }
 
+      // Incident count map
       const counts = computeCountsForPolygons();
 
-      let maxCategory = 0;
-      let maxRegular = 0;
-
+      let maxCategory = 0, maxRegular = 0;
       Object.entries(counts).forEach(([name, count]) => {
         const poly = polygons.find(p => p.name === name);
-        if (poly) {
-          if (poly.isCategory) {
-            if (count > maxCategory) maxCategory = count;
-          } else {
-            if (count > maxRegular) maxRegular = count;
-          }
-        }
+        if (!poly) return;
+        if (poly.isCategory) { if (count > maxCategory) maxCategory = count; }
+        else                 { if (count > maxRegular)  maxRegular  = count; }
       });
 
       polygons.forEach(p => {
         const c = counts[p.name] || 0;
-
         if (p.isCategory) {
-          const ratio = maxCategory > 0 ? c / maxCategory : 0;
+          const ratio   = maxCategory > 0 ? c / maxCategory : 0;
           const boosted = Math.pow(ratio, 0.55);
-          const opacity = 0.3 + boosted * 0.6;
-          const fillColor = interpolateColor("#aaaaaa", "#0000ff", boosted);
-
           p.layer.setStyle({
-            color: '#0a400c',
-            fillColor: fillColor,
-            fillOpacity: opacity,
-            weight: 3
+            color:       '#0a400c',
+            fillColor:   interpolateColor('#aaaaaa', '#0000ff', boosted),
+            fillOpacity: 0.3 + boosted * 0.6,
+            weight:      3
           });
         } else {
-          const ratio = maxRegular > 0 ? c / maxRegular : 0;
+          const ratio   = maxRegular > 0 ? c / maxRegular : 0;
           const boosted = Math.pow(ratio, 0.55);
-          const opacity = 0.45 + boosted * 0.55;
-          const fillColor = interpolateColor("#aaaaaa", "#0000ff", boosted);
-
-          p.layer.setStyle({
-            color: fillColor,
-            fillColor: fillColor,
-            fillOpacity: opacity,
-            weight: 2
-          });
+          const fill    = interpolateColor('#aaaaaa', '#0000ff', boosted);
+          p.layer.setStyle({ color: fill, fillColor: fill, fillOpacity: 0.45 + boosted * 0.55, weight: 2 });
         }
       });
 
@@ -2691,99 +2899,57 @@
     }
 
     function updateCsvSummary() {
-      const el = document.getElementById('csvSummary');
+      const el   = document.getElementById('csvSummary');
       const mode = document.querySelector('input[name="heatmapMode"]:checked').value;
 
-      if (!csvRows || csvRows.length === 0) {
-        el.innerText = 'No CSV loaded';
-        return;
-      }
+      if (!csvRows || csvRows.length === 0) { el.innerText = 'No CSV loaded'; return; }
 
       if (mode === 'distance' && distanceDataCalculated[routingMode] && distanceCache[routingMode]) {
+        // Sort polygons by efficiency ratio
         const ratioEntries = Object.entries(distanceCache[routingMode])
-          .filter(([name, data]) => data.ratio > 0)
+          .filter(([, data]) => data.ratio > 0)
           .map(([name, data]) => ({ name, ratio: data.ratio, avgTime: data.avgTime }))
           .sort((a, b) => b.ratio - a.ratio);
 
-        if (ratioEntries.length === 0) {
-          el.innerText = 'No distance/time data available';
-          return;
-        }
+        if (ratioEntries.length === 0) { el.innerText = 'No distance/time data available'; return; }
 
         if (ratioEntries.length <= 6) {
-          const lines = ratioEntries.map(e => `${e.name}: ${e.ratio.toFixed(3)} mi/min (${e.avgTime.toFixed(1)} min)`);
-          el.innerText = `Efficiency Rankings:\n${lines.join('\n')}`;
+          el.innerText = 'Efficiency Rankings:\n' + ratioEntries.map(e => `${e.name}: ${e.ratio.toFixed(3)} mi/min (${e.avgTime.toFixed(1)} min)`).join('\n');
         } else {
-          const top3 = ratioEntries.slice(0, 3);
+          // Show only top 3 and bottom 3
+          const top3    = ratioEntries.slice(0, 3);
           const bottom3 = ratioEntries.slice(-3).reverse();
-
-          const topLines = top3.map(e => `✓ ${e.name}: ${e.ratio.toFixed(3)} mi/min (${e.avgTime.toFixed(1)} min)`);
-          const bottomLines = bottom3.map(e => `✗ ${e.name}: ${e.ratio.toFixed(3)} mi/min (${e.avgTime.toFixed(1)} min)`);
-
-          el.innerText = `Top 3 Fastest:\n${topLines.join('\n')}\n\nBottom 3 Slowest:\n${bottomLines.join('\n')}`;
+          el.innerText  =
+            `Top 3 Fastest:\n${top3.map(e => `✓ ${e.name}: ${e.ratio.toFixed(3)} mi/min (${e.avgTime.toFixed(1)} min)`).join('\n')}\n\n` +
+            `Bottom 3 Slowest:\n${bottom3.map(e => `✗ ${e.name}: ${e.ratio.toFixed(3)} mi/min (${e.avgTime.toFixed(1)} min)`).join('\n')}`;
         }
         return;
       }
 
-      let totalActive = 0, matched = 0, unmatched = 0;
-      const namesSet = new Set(polygons.map(p => p.name));
-
-      csvRows.forEach(r => {
-        let passesFilters = true;
-
-        for (const colName of filterableColumns) {
-          const filterSet = activeFilters[colName];
-          if (filterSet && filterSet.size > 0) {
-            if (!filterSet.has(r[colName])) {
-              passesFilters = false;
-              break;
-            }
-          }
-        }
-
-        if (!applyCustomFilters(r)) {
-          passesFilters = false;
-        }
-
-        if (passesFilters) {
-          totalActive++;
-          if (namesSet.has(r[locationColumnName])) matched++;
-          else unmatched++;
-        }
-      });
-
-      const counts = computeCountsForPolygons();
+      // Incident count summary
+      const counts  = computeCountsForPolygons();
       const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-      const lines = entries.slice(0, 3).map(e => `${e[0]}: ${e[1]}`);
-      const more = entries.length > 3 ? `\n+ ${entries.length - 3} more...` : '';
-
-      el.innerText = `Top Incident Locations:\n${lines.join('\n')}${more}`;
+      const lines   = entries.slice(0, 3).map(e => `${e[0]}: ${e[1]}`);
+      const more    = entries.length > 3 ? `\n+ ${entries.length - 3} more...` : '';
+      el.innerText  = `Top Incident Locations:\n${lines.join('\n')}${more}`;
     }
 
+    // Area/category details popup
     function showPolygonPopup(poly) {
       let allMatches, filteredMatches;
 
       if (poly.isCategory) {
-        const data = getAggregatedCategoryData(poly);
-        allMatches = data ? data.totalRows : [];
+        const data    = getAggregatedCategoryData(poly);
+        allMatches      = data ? data.totalRows    : [];
         filteredMatches = data ? data.filteredRows : [];
       } else {
         allMatches = csvRows.filter(r => r[locationColumnName] === poly.name);
-
         filteredMatches = allMatches.filter(row => {
           for (const colName of filterableColumns) {
             const filterSet = activeFilters[colName];
-            if (filterSet && filterSet.size > 0) {
-              if (!filterSet.has(row[colName])) {
-                return false;
-              }
-            }
+            if (filterSet && filterSet.size > 0 && !filterSet.has(row[colName])) return false;
           }
-
-          if (!applyCustomFilters(row)) {
-            return false;
-          }
-
+          if (!applyCustomFilters(row)) return false;
           return true;
         });
       }
@@ -2791,12 +2957,14 @@
       let popupHTML = `<div class="poly-popup">`;
       popupHTML += `<div class="popup-title">${poly.name}${poly.isCategory ? ' (Category)' : ''}</div>`;
 
+      // Show locations included in a category
       if (poly.isCategory) {
         popupHTML += `<div style="font-size:12px; color:#0a400c; margin-bottom:8px; padding:6px; background:#f4ede1; border-radius:4px; border:1px solid #b1ab86;">`;
         popupHTML += `📁 Includes: ${poly.categoryLocations.join(', ')}`;
         popupHTML += `</div>`;
       }
 
+      // Filtered vs total count
       popupHTML += `<div style="font-size:14px; color:#6b7280; margin-bottom:10px;">Filtered Incidents: ${filteredMatches.length}`;
       if (filteredMatches.length !== allMatches.length) {
         popupHTML += ` <span style="color:#9ca3af;">(${allMatches.length} total)</span>`;
@@ -2807,24 +2975,16 @@
       if (mode === 'distance' && distanceCache[routingMode] && distanceCache[routingMode][poly.name]) {
         const data = distanceCache[routingMode][poly.name];
 
+        // calc unfiltered avg time
         const allIncidents = allMatches.filter(r => r.timeElapsed);
-        let totalAvgTime = 0;
-        let totalRatio = 0;
-
+        let totalAvgTime   = 0, totalRatio = 0;
         if (allIncidents.length > 0) {
-          const totalTime = allIncidents.reduce((sum, incident) => {
-            return sum + (parseFloat(incident.timeElapsed) || 0);
-          }, 0);
-          totalAvgTime = totalTime / allIncidents.length;
-
-          const distanceMiles = distanceCache[routingMode][poly.name].distance;
-          if (totalAvgTime > 0 && distanceMiles) {
-            totalRatio = distanceMiles / totalAvgTime;
-          }
+          totalAvgTime  = allIncidents.reduce((sum, inc) => sum + (parseFloat(inc.timeElapsed) || 0), 0) / allIncidents.length;
+          const distMiles = distanceCache[routingMode][poly.name].distance;
+          if (totalAvgTime > 0 && distMiles) totalRatio = distMiles / totalAvgTime;
         }
 
         popupHTML += `<div style="font-size:14px; background:#f4ede1; padding:6px; border-radius:4px; margin-bottom:10px; border:1px solid #b1ab86;">`;
-
         popupHTML += `<div style="font-weight:600; margin-bottom:4px; color:#0a400c;">Filtered Metrics:</div>`;
         popupHTML += `<div style="margin-left:8px;"><strong>Avg Time:</strong> ${data.avgTime ? data.avgTime.toFixed(1) + ' min' : 'N/A'}</div>`;
         popupHTML += `<div style="margin-left:8px; margin-bottom:6px;"><strong>Efficiency:</strong> ${data.ratio ? data.ratio.toFixed(3) + ' mi/min' : 'N/A'}</div>`;
@@ -2834,17 +2994,16 @@
           popupHTML += `<div style="margin-left:8px;"><strong>Avg Time:</strong> ${totalAvgTime.toFixed(1)} min</div>`;
           popupHTML += `<div style="margin-left:8px;"><strong>Efficiency:</strong> ${totalRatio.toFixed(3)} mi/min</div>`;
         }
-
         popupHTML += `</div>`;
       }
 
       if (filteredMatches.length === 0) {
-        popupHTML += `<div style="color:#9ca3af; font-size:12px;">No incidents match current filters</div>`;
-        popupHTML += `</div>`;
+        popupHTML += `<div style="color:#9ca3af; font-size:12px;">No incidents match current filters</div></div>`;
         poly.layer.bindPopup(popupHTML, { maxWidth: 300, maxHeight: 300 }).openPopup();
         return;
       }
 
+      // column breakdowns
       filterableColumns.forEach(colName => {
         const valueCounts = {};
         filteredMatches.forEach(row => {
@@ -2853,129 +3012,91 @@
         });
 
         const bodyId = `popup-body-${poly.name}-${colName}`.replace(/\s+/g, '-');
-
         popupHTML += `<div class="popup-section">`;
-        popupHTML += `<div class="popup-section-header" onclick="togglePopupSection('${bodyId}')">`;
-        popupHTML += `<span>${colName}</span>`;
-        popupHTML += `<span style="color:#6b7280;">▼</span>`;
-        popupHTML += `</div>`;
+        popupHTML += `<div class="popup-section-header" onclick="togglePopupSection('${bodyId}')"><span>${colName}</span><span style="color:#6b7280;">▼</span></div>`;
         popupHTML += `<div class="popup-section-body" id="${bodyId}" style="display:none;">`;
-
         Object.entries(valueCounts).sort((a, b) => b[1] - a[1]).forEach(([val, count]) => {
           popupHTML += `<div style="padding:3px 0;">${val}: <strong>${count}</strong></div>`;
         });
-
         popupHTML += `</div></div>`;
       });
 
+      // filtered incident table
       const filteredListBodyId = `popup-filtered-list-${poly.name}`.replace(/\s+/g, '-');
       popupHTML += `<div class="popup-section">`;
-      popupHTML += `<div class="popup-section-header" onclick="togglePopupSection('${filteredListBodyId}')">`;
-      popupHTML += `<span>Filtered Incidents</span>`;
-      popupHTML += `<span style="color:#6b7280;">▼</span>`;
-      popupHTML += `</div>`;
-      popupHTML += `<div class="popup-section-body" id="${filteredListBodyId}" style="display:none;">`;
-      popupHTML += `<div class="popup-table-wrapper">`;
-      popupHTML += `<table style="width:100%; font-size:11px; border-collapse:collapse;">`;
-      popupHTML += `<thead><tr>`;
-
-      csvColumns.forEach(col => {
-        popupHTML += `<th style="border-bottom:1px solid #e5e7eb; padding:4px; text-align:left; white-space:nowrap;">${col}</th>`;
-      });
-
+      popupHTML += `<div class="popup-section-header" onclick="togglePopupSection('${filteredListBodyId}')"><span>Filtered Incidents</span><span style="color:#6b7280;">▼</span></div>`;
+      popupHTML += `<div class="popup-section-body" id="${filteredListBodyId}" style="display:none;"><div class="popup-table-wrapper">`;
+      popupHTML += `<table style="width:100%; font-size:11px; border-collapse:collapse;"><thead><tr>`;
+      csvColumns.forEach(col => { popupHTML += `<th style="border-bottom:1px solid #e5e7eb; padding:4px; text-align:left; white-space:nowrap;">${col}</th>`; });
       popupHTML += `</tr></thead><tbody>`;
-
       filteredMatches.forEach(row => {
         popupHTML += `<tr>`;
-        csvColumns.forEach(col => {
-          popupHTML += `<td style="border-bottom:1px solid #f3f4f6; padding:4px; white-space:nowrap;">${row[col] || ''}</td>`;
-        });
+        csvColumns.forEach(col => { popupHTML += `<td style="border-bottom:1px solid #f3f4f6; padding:4px; white-space:nowrap;">${row[col] || ''}</td>`; });
         popupHTML += `</tr>`;
       });
-
       popupHTML += `</tbody></table></div></div></div>`;
 
+      // Unfiltered table
       if (filteredMatches.length !== allMatches.length) {
         const allListBodyId = `popup-all-list-${poly.name}`.replace(/\s+/g, '-');
         popupHTML += `<div class="popup-section">`;
-        popupHTML += `<div class="popup-section-header" onclick="togglePopupSection('${allListBodyId}')">`;
-        popupHTML += `<span>All Incidents (Unfiltered)</span>`;
-        popupHTML += `<span style="color:#6b7280;">▼</span>`;
-        popupHTML += `</div>`;
-        popupHTML += `<div class="popup-section-body" id="${allListBodyId}" style="display:none;">`;
-        popupHTML += `<div class="popup-table-wrapper">`;
-        popupHTML += `<table style="width:100%; font-size:11px; border-collapse:collapse;">`;
-        popupHTML += `<thead><tr>`;
-
-        csvColumns.forEach(col => {
-          popupHTML += `<th style="border-bottom:1px solid #e5e7eb; padding:4px; text-align:left; white-space:nowrap;">${col}</th>`;
-        });
-
+        popupHTML += `<div class="popup-section-header" onclick="togglePopupSection('${allListBodyId}')"><span>All Incidents (Unfiltered)</span><span style="color:#6b7280;">▼</span></div>`;
+        popupHTML += `<div class="popup-section-body" id="${allListBodyId}" style="display:none;"><div class="popup-table-wrapper">`;
+        popupHTML += `<table style="width:100%; font-size:11px; border-collapse:collapse;"><thead><tr>`;
+        csvColumns.forEach(col => { popupHTML += `<th style="border-bottom:1px solid #e5e7eb; padding:4px; text-align:left; white-space:nowrap;">${col}</th>`; });
         popupHTML += `</tr></thead><tbody>`;
-
         allMatches.forEach(row => {
           popupHTML += `<tr>`;
-          csvColumns.forEach(col => {
-            popupHTML += `<td style="border-bottom:1px solid #f3f4f6; padding:4px; white-space:nowrap;">${row[col] || ''}</td>`;
-          });
+          csvColumns.forEach(col => { popupHTML += `<td style="border-bottom:1px solid #f3f4f6; padding:4px; white-space:nowrap;">${row[col] || ''}</td>`; });
           popupHTML += `</tr>`;
         });
-
         popupHTML += `</tbody></table></div></div></div>`;
       }
 
       popupHTML += `</div>`;
-
       poly.layer.bindPopup(popupHTML, { maxWidth: 300, maxHeight: 300 }).openPopup();
     }
 
     window.togglePopupSection = function (bodyId) {
       const body = document.getElementById(bodyId);
-      if (body) {
-        body.style.display = body.style.display === 'none' ? 'block' : 'none';
-      }
+      if (body) body.style.display = body.style.display === 'none' ? 'block' : 'none';
     };
 
+    window.addCategoricalGroup = addCategoricalGroup;
+    window.selectModalType = selectModalType;
+    window.closeCustomFilterModal = closeCustomFilterModal;
+    window.saveCustomFilter = saveCustomFilter;
+
+
     function clearDetailsPanel() {
-      document.getElementById('detailsTbody').innerHTML = '';
+      document.getElementById('detailsTbody').innerHTML  = '';
       document.getElementById('detailsTableHead').querySelector('tr').innerHTML = '';
-      document.getElementById('detailsScroll').style.display = 'none';
-      document.getElementById('summaryContainer').innerHTML = '';
+      document.getElementById('detailsScroll').style.display    = 'none';
+      document.getElementById('summaryContainer').innerHTML      = '';
       document.getElementById('summaryContainer').style.display = 'none';
     }
+
+    // Export/Import All Settings
 
     document.getElementById('exportAllBtn').addEventListener('click', () => {
       try {
         const allSettings = {
-          version: 2,
-          polygons: polygons.map(p => ({
-            name: p.name,
-            coords: p.coords,
-            isCategory: p.isCategory || false,
-            categoryLocations: p.categoryLocations || []
-          })),
-          customFilters: customFilters.map(f => ({
-            id: f.id,
-            name: f.name,
-            column: f.column,
-            ranges: f.ranges,
-            activeRanges: Array.from(f.activeRanges)
-          })),
-          mapCenter: mapCenter,
-          station: _station ? { lat: _station.latlng.lat, lng: _station.latlng.lng } : null,
-          routingMode: routingMode
+          version:      2,
+          polygons:     polygons.map(p => ({ name: p.name, coords: p.coords, isCategory: p.isCategory || false, categoryLocations: p.categoryLocations || [] })),
+          customFilters: customFilters.map(f => ({ ...f, activeRanges: Array.from(f.activeRanges || new Set()) })),
+          mapCenter,
+          station:      _station ? { lat: _station.latlng.lat, lng: _station.latlng.lng } : null,
+          routingMode
         };
-
         const blob = new Blob([JSON.stringify(allSettings, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
         a.download = 'ems-mapping-settings.json';
         document.body.appendChild(a);
         a.click();
         a.remove();
         URL.revokeObjectURL(url);
-
         alert('All settings exported successfully!');
       } catch (err) {
         alert('Export failed: ' + (err && err.message ? err.message : err));
@@ -2985,107 +3106,66 @@
     document.getElementById('importAllFile').addEventListener('change', function (ev) {
       const f = ev.target.files && ev.target.files[0];
       if (!f) return;
-
       const reader = new FileReader();
       reader.onload = function (e) {
         try {
           const data = JSON.parse(e.target.result);
+          if (!data.version || data.version < 2) throw new Error('Incompatible settings file format');
 
-          if (!data.version || data.version < 2) {
-            throw new Error('Incompatible settings file format');
-          }
-
+          // Remove existing polygons
           polygons.forEach(p => {
-            try { if (p.layer) map.removeLayer(p.layer); } catch (_) { }
-            try { if (p.label) map.removeLayer(p.label); } catch (_) { }
+            try { if (p.layer) map.removeLayer(p.layer); } catch (_) {}
+            try { if (p.label) map.removeLayer(p.label); } catch (_) {}
           });
           polygons = [];
 
+          // Restore polygons
           if (data.polygons && Array.isArray(data.polygons)) {
             data.polygons.forEach(item => {
-              const color = item.isCategory ? '#0a400c' : 'blue';
+              const color     = item.isCategory ? '#0a400c' : 'blue';
               const fillColor = item.isCategory ? 'rgba(162,123,92,0.4)' : 'rgba(0,0,255,0.4)';
-              const weight = item.isCategory ? 3 : 2;
-              const layer = L.polygon(item.coords, { color, fillColor, weight }).addTo(map);
-              const polyObj = {
-                name: item.name,
-                coords: item.coords,
-                layer,
-                isCategory: item.isCategory || false,
-                categoryLocations: item.categoryLocations || []
-              };
+              const weight    = item.isCategory ? 3 : 2;
+              const layer     = L.polygon(item.coords, { color, fillColor, weight }).addTo(map);
+              const polyObj   = { name: item.name, coords: item.coords, layer, isCategory: item.isCategory || false, categoryLocations: item.categoryLocations || [] };
               polygons.push(polyObj);
               createLabelForPolygon(polyObj);
-
               if (polyObj.isCategory) {
-                if (layer && map.hasLayer(layer)) {
-                  map.removeLayer(layer);
-                }
-                if (polyObj.label && map.hasLayer(polyObj.label)) {
-                  map.removeLayer(polyObj.label);
-                }
+                if (layer && map.hasLayer(layer))                  map.removeLayer(layer);
+                if (polyObj.label && map.hasLayer(polyObj.label)) map.removeLayer(polyObj.label);
               }
             });
           }
 
+          // Restore custom filters
           if (data.customFilters && Array.isArray(data.customFilters)) {
-            customFilters = data.customFilters.map(f => ({
-              id: f.id,
-              name: f.name,
-              column: f.column,
-              ranges: f.ranges,
-              activeRanges: new Set(f.activeRanges || [])
-            }));
+            customFilters = data.customFilters.map(f => ({ ...f, activeRanges: new Set(f.activeRanges || []) }));
           }
 
+          // Restore map center
           if (data.mapCenter) {
             mapCenter = data.mapCenter;
             map.setView([mapCenter.lat, mapCenter.lng], mapCenter.zoom);
-            try {
-              localStorage.setItem(LS_MAP_CENTER, JSON.stringify(mapCenter));
-            } catch (e) { }
+            try { localStorage.setItem(LS_MAP_CENTER, JSON.stringify(mapCenter)); } catch (e) {}
           }
 
+          // Restore station marker
           if (data.station && data.station.lat && data.station.lng) {
             if (_station && _station.marker) map.removeLayer(_station.marker);
-
             const latlng = L.latLng(data.station.lat, data.station.lng);
             const marker = L.marker(latlng, { draggable: true }).addTo(map);
             marker.bindPopup('Station');
-
-            marker.on('dragend', () => {
-              _station.latlng = marker.getLatLng();
-              updateStationDisplay();
-              saveStationToLocalStorage();
-              distanceDataCalculated = false;
-              distanceCache = {};
-              saveDistanceCacheToLocalStorage();
-            });
-
-            marker.on('contextmenu', () => {
-              map.removeLayer(marker);
-              _station = null;
-              updateStationDisplay();
-              saveStationToLocalStorage();
-              distanceDataCalculated = false;
-              distanceCache = {};
-              saveDistanceCacheToLocalStorage();
-              updateShading();
-            });
-
+            marker.on('dragend',   () => { _station.latlng = marker.getLatLng(); updateStationDisplay(); saveStationToLocalStorage(); distanceDataCalculated = {}; distanceCache = {}; saveDistanceCacheToLocalStorage(); });
+            marker.on('contextmenu', () => { map.removeLayer(marker); _station = null; updateStationDisplay(); saveStationToLocalStorage(); distanceDataCalculated = {}; distanceCache = {}; saveDistanceCacheToLocalStorage(); updateShading(); });
             _station = { marker, latlng };
             updateStationDisplay();
             saveStationToLocalStorage();
           }
 
+          // Restore routing mode
           if (data.routingMode) {
             routingMode = data.routingMode;
-            document.querySelectorAll('.routing-mode-btn').forEach(btn => {
-              btn.classList.toggle('active', btn.dataset.mode === routingMode);
-            });
-            try {
-              localStorage.setItem(LS_ROUTING_MODE, routingMode);
-            } catch (e) { }
+            document.querySelectorAll('.routing-mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === routingMode));
+            try { localStorage.setItem(LS_ROUTING_MODE, routingMode); } catch (e) {}
           }
 
           savePolygonsToLocalStorage();
@@ -3095,14 +3175,11 @@
           updateLegendDisplay();
           renderCustomFilters();
           updateMapCenterDisplay();
-
-          distanceDataCalculated = false;
-          distanceCache = {};
+          distanceDataCalculated = {};
+          distanceCache          = {};
           saveDistanceCacheToLocalStorage();
-
           updateShading();
           clearDetailsPanel();
-
           alert('All settings imported successfully!');
         } catch (err) {
           alert('Import failed: ' + (err && err.message ? err.message : err));
@@ -3112,19 +3189,16 @@
       ev.target.value = '';
     });
 
+    // Export POlygons
+
     function exportPolygonsToFile() {
       try {
-        const payload = polygons.map(p => ({
-          name: p.name,
-          coords: p.coords,
-          isCategory: p.isCategory || false,
-          categoryLocations: p.categoryLocations || []
-        }));
-        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'mapping_area_designations.json';
+        const payload = polygons.map(p => ({ name: p.name, coords: p.coords, isCategory: p.isCategory || false, categoryLocations: p.categoryLocations || [] }));
+        const blob    = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url     = URL.createObjectURL(blob);
+        const a       = document.createElement('a');
+        a.href        = url;
+        a.download    = 'mapping_area_designations.json';
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -3142,8 +3216,8 @@
           if (!Array.isArray(data)) throw new Error('Invalid format');
 
           polygons.forEach(p => {
-            try { if (p.layer) map.removeLayer(p.layer); } catch (_) { }
-            try { if (p.label) map.removeLayer(p.label); } catch (_) { }
+            try { if (p.layer) map.removeLayer(p.layer); } catch (_) {}
+            try { if (p.label) map.removeLayer(p.label); } catch (_) {}
           });
           polygons = [];
 
@@ -3152,23 +3226,12 @@
             const fillColor = item.isCategory ? 'rgba(162,123,92,0.4)' : 'rgba(0,0,255,0.4)';
             const weight = item.isCategory ? 3 : 2;
             const layer = L.polygon(item.coords, { color, fillColor, weight }).addTo(map);
-            const polyObj = {
-              name: item.name,
-              coords: item.coords,
-              layer,
-              isCategory: item.isCategory || false,
-              categoryLocations: item.categoryLocations || []
-            };
+            const polyObj = { name: item.name, coords: item.coords, layer, isCategory: item.isCategory || false, categoryLocations: item.categoryLocations || [] };
             polygons.push(polyObj);
             createLabelForPolygon(polyObj);
-
             if (polyObj.isCategory) {
-              if (layer && map.hasLayer(layer)) {
-                map.removeLayer(layer);
-              }
-              if (polyObj.label && map.hasLayer(polyObj.label)) {
-                map.removeLayer(polyObj.label);
-              }
+              if (layer && map.hasLayer(layer)) map.removeLayer(layer);
+              if (polyObj.label && map.hasLayer(polyObj.label)) map.removeLayer(polyObj.label);
             }
           });
 
@@ -3176,11 +3239,9 @@
           updatePolygonList();
           updateCategoryLabelToggleVisibility();
           updateLegendDisplay();
-
           distanceDataCalculated = {};
-          distanceCache = {};
+          distanceCache          = {};
           saveDistanceCacheToLocalStorage();
-
           updateShading();
           clearDetailsPanel();
         } catch (err) {
@@ -3200,9 +3261,11 @@
 
     document.getElementById('resetBtn').addEventListener('click', resetAll);
 
+    // Run everything when the page loads
+
     loadCsvFromLocalStorage();
-    loadPolygonsFromLocalStorage();
-    loadStationFromLocalStorage();
+    loadPolygonsFromLocalStorage();     
+    loadStationFromLocalStorage();      
     loadDistanceCacheFromLocalStorage();
     loadCustomFiltersFromLocalStorage();
     updateCategoryLabelToggleVisibility();
