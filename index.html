@@ -2917,7 +2917,7 @@
             if (!applyCustomFilters(row)) return false;
             return true;
           }).length;
-          totalCountLine = `Filtered Incidents: ${filteredTotal} of ${csvRows.length} filtered\n\n`;
+          totalCountLine = `(Filtered) Displaying ${filteredTotal} of ${csvRows.length}\n\n`;
         } else {
           totalCountLine = `Total Incidents: ${csvRows.length}\n\n`;
         }
